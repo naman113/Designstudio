@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "note": "Densities by material name. A part's mass = volume x density. A material not listed here, 'Default' or no material uses `default`, and every mass made with it is flagged as assumed (never shown as exact). Matching: the material name lower-cased, then each `names` entry as a whole word. Write with json.dump.",
+  "default": {
+    "material": "steel",
+    "density_kg_m3": 7850,
+    "assumed": true,
+    "why": "the catalogue's material reads 'Default'; steel is the density find.py already uses (7.85e-6 kg/mm3)"
+  },
+  "materials": [
+    {
+      "material": "steel",
+      "names": [
+        "steel",
+        "s235",
+        "s355",
+        "c45",
+        "42crmo4",
+        "ck45",
+        "1045",
+        "4140"
+      ],
+      "density_kg_m3": 7850
+    },
+    {
+      "material": "stainless steel",
+      "names": [
+        "stainless",
+        "1.4301",
+        "304",
+        "316",
+        "inox"
+      ],
+      "density_kg_m3": 8000
+    },
+    {
+      "material": "cast iron",
+      "names": [
+        "cast iron",
+        "gg25",
+        "gjl",
+        "gjs",
+        "ductile iron"
+      ],
+      "density_kg_m3": 7200
+    },
+    {
+      "material": "aluminium",
+      "names": [
+        "aluminium",
+        "aluminum",
+        "6061",
+        "6082",
+        "7075",
+        "alu"
+      ],
+      "density_kg_m3": 2700
+    },
+    {
+      "material": "brass",
+      "names": [
+        "brass",
+        "cuzn"
+      ],
+      "density_kg_m3": 8500
+    },
+    {
+      "material": "bronze",
+      "names": [
+        "bronze",
+        "cusn"
+      ],
+      "density_kg_m3": 8800
+    },
+    {
+      "material": "copper",
+      "names": [
+        "copper"
+      ],
+      "density_kg_m3": 8960
+    },
+    {
+      "material": "titanium",
+      "names": [
+        "titanium",
+        "ti6al4v"
+      ],
+      "density_kg_m3": 4430
+    },
+    {
+      "material": "plastic (nylon)",
+      "names": [
+        "nylon",
+        "polyamide",
+        "pa6",
+        "pa66"
+      ],
+      "density_kg_m3": 1140
+    },
+    {
+      "material": "plastic (acetal)",
+      "names": [
+        "acetal",
+        "pom",
+        "delrin"
+      ],
+      "density_kg_m3": 1410
+    },
+    {
+      "material": "rubber",
+      "names": [
+        "rubber",
+        "epdm",
+        "nbr"
+      ],
+      "density_kg_m3": 1200
+    }
+  ]
+}

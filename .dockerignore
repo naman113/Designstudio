@@ -1,0 +1,33 @@
+# Keeps keys, data and local runtime files out of the build context (and so out of every image layer).
+# Patterns are anchored at the repo root: file globs carry **/ so they match in every folder.
+.git
+# every hidden entry at the root (planning notes, editor and tool folders, keys) and the root markdown files
+.*
+*.md
+.env
+.env.*
+**/.env*
+.containers/
+work/
+models/
+cad/
+out/
+data/
+buildcore-out/
+**/*.db
+**/*.db-*
+**/*.sqlite
+framework/products/*
+!framework/products/.gitkeep
+framework/web/static/meshes/
+framework/web/static/files/*
+!framework/web/static/files/.gitkeep
+**/__pycache__
+**/*.py[cod]
+**/*.step
+**/*.STEP
+**/*.stp
+**/*.STP
+**/.DS_Store
+.venv/
+venv/

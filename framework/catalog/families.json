@@ -1,0 +1,97 @@
+{
+  "version": 2,
+  "note": "Ordered. FIRST MATCH WINS, so specific rules go above general ones. Rules live here as DATA on purpose, so they can be tuned without a code change. Write this file with json.dump, never by hand: a literal \b in JSON is a BACKSPACE, not a regex word boundary, and it silently breaks every label rule.",
+  "fields": "Any numeric column in parts. Ops: lt lte gt gte eq between. label_matches is a Python regex.",
+  "rules": [
+    {
+      "family": "fastener",
+      "why": "named as a fastener",
+      "label_matches": "(?i)\\b(bolt|screw|stud|nut|washer|dowel)\\b"
+    },
+    {
+      "family": "bearing",
+      "why": "named as a bearing",
+      "label_matches": "(?i)\\b(bearing|bush|bushing|race)\\b"
+    },
+    {
+      "family": "gearbox",
+      "why": "named as a gearbox",
+      "label_matches": "(?i)\\b(gearbox|reducer|gearhead|worm)\\b"
+    },
+    {
+      "family": "crankshaft",
+      "why": "named as a crankshaft",
+      "label_matches": "(?i)crank\\s*shaft|\\bcrank\\b"
+    },
+    {
+      "family": "housing/block",
+      "why": "named as a housing, block or case",
+      "label_matches": "(?i)\\b(block|housing|case|crankcase|casing|enclosure|shell|cover|body)\\b"
+    },
+    {
+      "family": "cylinder/actuator",
+      "why": "named as a cylinder or ram",
+      "label_matches": "(?i)\\b(cylinder|ram|piston|actuator)\\b"
+    },
+    {
+      "family": "pin/shaft",
+      "why": "named as a pin, shaft or axle",
+      "label_matches": "(?i)\\b(pin|shaft|axle|spindle|rod)\\b"
+    },
+    {
+      "family": "building element",
+      "why": "architectural, not a mechanical part",
+      "label_matches": "(?i)\\b(wall|window|door|slab|stair|stairs|ramp|pillar|beam|beans|roof|floor)\\b"
+    },
+    {
+      "family": "shaft",
+      "why": "long and slender, dominated by cylindrical faces",
+      "all": [
+        {
+          "field": "aspect_1",
+          "lt": 0.45
+        },
+        {
+          "field": "n_cylinder",
+          "gte": 3
+        }
+      ]
+    },
+    {
+      "family": "plate/bracket",
+      "why": "one dimension much smaller than the other two",
+      "all": [
+        {
+          "field": "aspect_2",
+          "lt": 0.2
+        },
+        {
+          "field": "n_plane",
+          "gte": 4
+        }
+      ]
+    },
+    {
+      "family": "housing/block",
+      "why": "big, boxy, many planar faces",
+      "all": [
+        {
+          "field": "aspect_2",
+          "gte": 0.35
+        },
+        {
+          "field": "n_plane",
+          "gte": 6
+        },
+        {
+          "field": "bbox_a_mm",
+          "gte": 50
+        }
+      ]
+    },
+    {
+      "family": "unclassified",
+      "why": "no rule matched"
+    }
+  ]
+}

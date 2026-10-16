@@ -1,0 +1,54 @@
+/* the slim side rail shared by every page (rail.js builds it, every page includes both files).
+   Same tokens as the studio ("layout dye on steel"); the values are repeated as fallbacks so a page without them still reads.
+   56 px on the left edge at 701 px and wider; at 700 px and narrower the rail folds into a menu button. */
+:root{
+  --rail-bg:var(--dye-800,#101B31); --rail-on:var(--dye-700,#152442); --rail-line:var(--rule-strong,#33507F);
+  --rail-icon:var(--steel,#B9C3D3); --rail-dim:var(--steel-dim,#7C8AA3); --rail-hi:var(--scribe,#EAF1FA);
+  --rail-lit:var(--scribe-blue,#7FB3FF); --rail-ink:var(--dye-900,#0B1322);
+  --rail-w:56px;
+}
+/* the page's own room: moves right of the rail (the Studio's grid and the other pages' sheets simply start 56 px in) */
+body{padding-left:var(--rail-w)}
+/* the Studio's collapsed chat leaves its 1 px border outside the sheet at 1920 px (scrollWidth 1921 with or without the rail):
+   never let a stray pixel become sideways scrolling */
+html{overflow-x:hidden}
+
+#rail{position:fixed;left:0;top:0;bottom:0;width:var(--rail-w);z-index:60;display:flex;flex-direction:column;align-items:center;
+  gap:6px;padding:12px 0;background:var(--rail-bg);border-right:1px solid var(--rail-line);font-family:var(--display,"Barlow Condensed",system-ui,sans-serif)}
+#rail a{position:relative;display:flex;align-items:center;justify-content:center;width:40px;height:40px;color:var(--rail-dim);
+  text-decoration:none;border:1px solid transparent;background:transparent}
+#rail a svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:square;stroke-linejoin:miter;flex:none}
+#rail a:hover,#rail a:focus-visible{color:var(--rail-hi);background:var(--rail-on)}
+#rail a:focus-visible{outline:2px solid var(--rail-lit);outline-offset:1px}
+/* the current page: lit icon, brighter ground and the scribe line down the rail edge */
+#rail a[aria-current="page"]{color:var(--rail-lit);background:var(--rail-on);border-color:var(--rail-line)}
+#rail a[aria-current="page"]::before{content:"";position:absolute;left:-9px;top:6px;bottom:6px;width:2px;background:var(--rail-lit)}
+/* the name: on hover and keyboard focus (on the phone it is always written beside the icon) */
+#rail .nm{position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);white-space:nowrap;pointer-events:none;
+  padding:3px 9px;background:var(--rail-ink);color:var(--rail-hi);border:1px solid var(--rail-line);font-weight:600;font-size:14px;
+  letter-spacing:.1em;text-transform:uppercase;opacity:0;visibility:hidden;transition:opacity .12s}
+#rail a:hover .nm,#rail a:focus-visible .nm{opacity:1;visibility:visible}
+
+#railBtn,#railScrim{display:none}
+
+@media (max-width:700px){
+  body{padding-left:0;padding-top:44px}
+  #railBtn{display:flex;position:fixed;left:6px;top:4px;z-index:61;width:36px;height:36px;align-items:center;justify-content:center;
+    background:var(--rail-bg);color:var(--rail-hi);border:1px solid var(--rail-line);padding:0;cursor:pointer}
+  #railBtn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:square}
+  #railBtn:focus-visible{outline:2px solid var(--rail-lit);outline-offset:2px}
+  #rail{width:220px;align-items:stretch;padding:52px 8px 12px;transform:translateX(-100%);visibility:hidden;
+    transition:transform .18s ease,visibility 0s linear .18s}
+  #rail.open{transform:none;visibility:visible;transition:transform .18s ease,visibility 0s}
+  #rail a{width:auto;height:44px;justify-content:flex-start;gap:14px;padding:0 10px}
+  #rail a[aria-current="page"]::before{left:-9px}
+  #rail .nm{position:static;transform:none;opacity:1;visibility:inherit;background:none;border:0;padding:0;font-size:17px;pointer-events:auto}
+  #railScrim{position:fixed;inset:0;z-index:59;background:rgba(11,19,34,.6);border:0;padding:0}
+  #railScrim.open{display:block}
+}
+@media (prefers-reduced-motion:reduce){
+  #rail,#rail .nm{transition:none !important}
+}
+@media (forced-colors:active){
+  #rail a[aria-current="page"]{border-color:Highlight} #rail a:focus-visible{outline-color:Highlight}
+}

@@ -1,0 +1,2041 @@
+{
+  "properties": [
+    {
+      "property_id": "part.object",
+      "name": "CAD object id",
+      "applies_to": "part",
+      "datatype": "text",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "CAD object identifier from the source document",
+      "irdi": null,
+      "stored_as": "column:part_revision.object_ref",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.label",
+      "name": "Label",
+      "applies_to": "part",
+      "datatype": "text",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "Human-readable label from the CAD tree",
+      "irdi": null,
+      "stored_as": "column:part_revision.label",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.type_id",
+      "name": "CAD type id",
+      "applies_to": "part",
+      "datatype": "text",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "CAD type id (e.g. Part::Feature)",
+      "irdi": null,
+      "stored_as": "column:part_revision.type_id",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.units",
+      "name": "Units",
+      "applies_to": "part",
+      "datatype": "text",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "Units the geometry was measured in",
+      "irdi": null,
+      "stored_as": "column:part_revision.units",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.volume",
+      "name": "Volume",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "volume",
+      "unit": "mm3",
+      "definition": "Solid volume",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.area",
+      "name": "Area",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "area",
+      "unit": "mm2",
+      "definition": "Total surface area",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.envelope",
+      "name": "Envelope",
+      "applies_to": "part",
+      "datatype": "vector",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "Bounding box dimensions sorted largest-first (orientation independent)",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.envelope_a",
+      "name": "Envelope A",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "Largest sorted bounding-box dimension",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.envelope"
+    },
+    {
+      "property_id": "part.envelope_b",
+      "name": "Envelope B",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "Middle sorted bounding-box dimension",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.envelope"
+    },
+    {
+      "property_id": "part.envelope_c",
+      "name": "Envelope C",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "Smallest sorted bounding-box dimension",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.envelope"
+    },
+    {
+      "property_id": "part.bbox",
+      "name": "Bounding box",
+      "applies_to": "part",
+      "datatype": "vector",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "Axis-aligned bounding box (xmin,xmax,ymin,ymax,zmin,zmax), part coordinates",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.bbox_xmin",
+      "name": "Bbox xmin",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.bbox"
+    },
+    {
+      "property_id": "part.bbox_xmax",
+      "name": "Bbox xmax",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.bbox"
+    },
+    {
+      "property_id": "part.bbox_ymin",
+      "name": "Bbox ymin",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.bbox"
+    },
+    {
+      "property_id": "part.bbox_ymax",
+      "name": "Bbox ymax",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.bbox"
+    },
+    {
+      "property_id": "part.bbox_zmin",
+      "name": "Bbox zmin",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.bbox"
+    },
+    {
+      "property_id": "part.bbox_zmax",
+      "name": "Bbox zmax",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.bbox"
+    },
+    {
+      "property_id": "part.com",
+      "name": "Centre of mass",
+      "applies_to": "part",
+      "datatype": "vector",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "Centre of mass, part coordinates",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.moments",
+      "name": "Principal moments",
+      "applies_to": "part",
+      "datatype": "vector",
+      "quantity_kind": "moment_of_inertia",
+      "unit": "mm5",
+      "definition": "Principal moments of the area (rotation invariant, mass-free)",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.moment_1",
+      "name": "Moment 1",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "moment_of_inertia",
+      "unit": "mm5",
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.moments"
+    },
+    {
+      "property_id": "part.moment_2",
+      "name": "Moment 2",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "moment_of_inertia",
+      "unit": "mm5",
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.moments"
+    },
+    {
+      "property_id": "part.moment_3",
+      "name": "Moment 3",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "moment_of_inertia",
+      "unit": "mm5",
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.moments"
+    },
+    {
+      "property_id": "part.radius_of_gyration",
+      "name": "Radii of gyration",
+      "applies_to": "part",
+      "datatype": "vector",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "Principal radii of gyration",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.rgyr_1",
+      "name": "Radius of gyration 1",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.radius_of_gyration"
+    },
+    {
+      "property_id": "part.rgyr_2",
+      "name": "Radius of gyration 2",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.radius_of_gyration"
+    },
+    {
+      "property_id": "part.rgyr_3",
+      "name": "Radius of gyration 3",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.radius_of_gyration"
+    },
+    {
+      "property_id": "part.n_solids",
+      "name": "Solid count",
+      "applies_to": "part",
+      "datatype": "int",
+      "quantity_kind": "count",
+      "unit": null,
+      "definition": "Number of solids",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.n_shells",
+      "name": "Shell count",
+      "applies_to": "part",
+      "datatype": "int",
+      "quantity_kind": "count",
+      "unit": null,
+      "definition": "Number of shells",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.n_faces",
+      "name": "Face count",
+      "applies_to": "part",
+      "datatype": "int",
+      "quantity_kind": "count",
+      "unit": null,
+      "definition": "Number of faces",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.n_edges",
+      "name": "Edge count",
+      "applies_to": "part",
+      "datatype": "int",
+      "quantity_kind": "count",
+      "unit": null,
+      "definition": "Number of edges",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.n_vertexes",
+      "name": "Vertex count",
+      "applies_to": "part",
+      "datatype": "int",
+      "quantity_kind": "count",
+      "unit": null,
+      "definition": "Number of vertices",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.surfaces",
+      "name": "Surface histogram",
+      "applies_to": "part",
+      "datatype": "map",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "Surface-type histogram (Plane/Cylinder/Cone/Sphere/Toroid/BSplineSurface/...)",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.n_plane",
+      "name": "Plane count",
+      "applies_to": "part",
+      "datatype": "int",
+      "quantity_kind": "count",
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.surfaces"
+    },
+    {
+      "property_id": "part.n_cylinder",
+      "name": "Cylinder count",
+      "applies_to": "part",
+      "datatype": "int",
+      "quantity_kind": "count",
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.surfaces"
+    },
+    {
+      "property_id": "part.n_cone",
+      "name": "Cone count",
+      "applies_to": "part",
+      "datatype": "int",
+      "quantity_kind": "count",
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.surfaces"
+    },
+    {
+      "property_id": "part.n_sphere",
+      "name": "Sphere count",
+      "applies_to": "part",
+      "datatype": "int",
+      "quantity_kind": "count",
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.surfaces"
+    },
+    {
+      "property_id": "part.n_torus",
+      "name": "Torus count",
+      "applies_to": "part",
+      "datatype": "int",
+      "quantity_kind": "count",
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.surfaces"
+    },
+    {
+      "property_id": "part.n_bspline",
+      "name": "BSpline surface count",
+      "applies_to": "part",
+      "datatype": "int",
+      "quantity_kind": "count",
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.surfaces"
+    },
+    {
+      "property_id": "part.n_other_surf",
+      "name": "Other surface count",
+      "applies_to": "part",
+      "datatype": "int",
+      "quantity_kind": "count",
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.surfaces"
+    },
+    {
+      "property_id": "part.curves",
+      "name": "Curve histogram",
+      "applies_to": "part",
+      "datatype": "map",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "Curve-type histogram (Line/Circle/...)",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.features",
+      "name": "Features",
+      "applies_to": "part",
+      "datatype": "text",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "Marker: this key's list becomes this part's feature entities (see feat.*)",
+      "irdi": null,
+      "stored_as": "column:feature",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.shape_ratios",
+      "name": "Shape ratios",
+      "applies_to": "part",
+      "datatype": "map",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "Scale-free shape descriptors (aspect_1, aspect_2, fill, compactness)",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.aspect_1",
+      "name": "Aspect 1",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "ratio",
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.shape_ratios"
+    },
+    {
+      "property_id": "part.aspect_2",
+      "name": "Aspect 2",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "ratio",
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.shape_ratios"
+    },
+    {
+      "property_id": "part.fill",
+      "name": "Fill",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "ratio",
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.shape_ratios"
+    },
+    {
+      "property_id": "part.compactness",
+      "name": "Compactness",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "ratio",
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.shape_ratios"
+    },
+    {
+      "property_id": "part.params",
+      "name": "Build parameters",
+      "applies_to": "part",
+      "datatype": "map",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "Named build parameters",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.material",
+      "name": "Material",
+      "applies_to": "part",
+      "datatype": "text",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "Material name",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.volume_method",
+      "name": "Volume method",
+      "applies_to": "part",
+      "datatype": "text",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "formula|mesh agreement method for volume, union over solids",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.volume_uncertainty",
+      "name": "Volume uncertainty",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "volume",
+      "unit": "mm3",
+      "definition": "Volume uncertainty estimate for the mesh path",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.area_method",
+      "name": "Area method",
+      "applies_to": "part",
+      "datatype": "text",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "formula|mesh agreement method for area, union over solids",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.area_uncertainty",
+      "name": "Area uncertainty",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "area",
+      "unit": "mm2",
+      "definition": "Area uncertainty estimate for the mesh path",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.family",
+      "name": "Family",
+      "applies_to": "part",
+      "datatype": "text",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "Classifier family (framework/catalog/families.json)",
+      "irdi": null,
+      "stored_as": "column:part_master.class_id",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.family_why",
+      "name": "Family reason",
+      "applies_to": "part",
+      "datatype": "text",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "Reason the classifier assigned this family",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "feat.kind",
+      "name": "Feature kind",
+      "applies_to": "feature",
+      "datatype": "text",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "cylinder | plane | cone | sphere | torus",
+      "irdi": null,
+      "stored_as": "column:feature.kind",
+      "derived_from": null
+    },
+    {
+      "property_id": "feat.role",
+      "name": "Feature role",
+      "applies_to": "feature",
+      "datatype": "text",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "bore | od | face | chamfer | countersink | ...",
+      "irdi": null,
+      "stored_as": "column:feature.role",
+      "derived_from": null
+    },
+    {
+      "property_id": "feat.diameter",
+      "name": "Diameter",
+      "applies_to": "feature",
+      "datatype": "real",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "Cylinder/sphere/torus diameter",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "feat.radius",
+      "name": "Radius",
+      "applies_to": "feature",
+      "datatype": "real",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "feat.semi_angle",
+      "name": "Semi-angle",
+      "applies_to": "feature",
+      "datatype": "real",
+      "quantity_kind": "angle",
+      "unit": "deg",
+      "definition": "Cone semi-angle, true signed value paired with feat.axis",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "feat.semi_angle_legacy",
+      "name": "Semi-angle (legacy)",
+      "applies_to": "feature",
+      "datatype": "real",
+      "quantity_kind": "angle",
+      "unit": "deg",
+      "definition": "Legacy abs(semi_angle_deg), kept for parity with older unsigned records",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "feat.axis",
+      "name": "Axis",
+      "applies_to": "feature",
+      "datatype": "vector",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "Sign-normalised true axis (first non-zero component positive)",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "feat.axis_legacy",
+      "name": "Axis (legacy)",
+      "applies_to": "feature",
+      "datatype": "vector",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "Legacy abs-per-component axis, kept for parity with older unsigned records",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "feat.position",
+      "name": "Position",
+      "applies_to": "feature",
+      "datatype": "vector",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "Point on the axis, or on the plane",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "feat.offset",
+      "name": "Offset",
+      "applies_to": "feature",
+      "datatype": "real",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "Plane: signed distance from origin to plane along the normal",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "feat.length",
+      "name": "Length",
+      "applies_to": "feature",
+      "datatype": "real",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "Cylinder: length along axis; plane: sqrt(area)",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "feat.area",
+      "name": "Area",
+      "applies_to": "feature",
+      "datatype": "real",
+      "quantity_kind": "area",
+      "unit": "mm2",
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "feat.face_count",
+      "name": "Face count",
+      "applies_to": "feature",
+      "datatype": "int",
+      "quantity_kind": "count",
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "feat.bbox",
+      "name": "Bounding box",
+      "applies_to": "feature",
+      "datatype": "vector",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "solid.volume",
+      "name": "Solid volume",
+      "applies_to": "solid",
+      "datatype": "real",
+      "quantity_kind": "volume",
+      "unit": "mm3",
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "solid.volume_method",
+      "name": "Solid volume method",
+      "applies_to": "solid",
+      "datatype": "text",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "solid.volume_uncertainty",
+      "name": "Solid volume uncertainty",
+      "applies_to": "solid",
+      "datatype": "real",
+      "quantity_kind": "volume",
+      "unit": "mm3",
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "solid.area",
+      "name": "Solid area",
+      "applies_to": "solid",
+      "datatype": "real",
+      "quantity_kind": "area",
+      "unit": "mm2",
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "solid.area_method",
+      "name": "Solid area method",
+      "applies_to": "solid",
+      "datatype": "text",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "solid.area_uncertainty",
+      "name": "Solid area uncertainty",
+      "applies_to": "solid",
+      "datatype": "real",
+      "quantity_kind": "area",
+      "unit": "mm2",
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "iface.kind",
+      "name": "Interface kind",
+      "applies_to": "interface",
+      "datatype": "text",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "cylindrical_fit | planar_contact",
+      "irdi": null,
+      "stored_as": "column:interface.kind",
+      "derived_from": null
+    },
+    {
+      "property_id": "iface.nominal_a",
+      "name": "Nominal A",
+      "applies_to": "interface",
+      "datatype": "real",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "Nominal size of the OD/first-face side",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "iface.nominal_b",
+      "name": "Nominal B",
+      "applies_to": "interface",
+      "datatype": "real",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "Nominal size of the bore/second-face side",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "iface.clearance",
+      "name": "Clearance",
+      "applies_to": "interface",
+      "datatype": "real",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "Bore minus shaft; planar: gap",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "iface.fit_class",
+      "name": "Fit class",
+      "applies_to": "interface",
+      "datatype": "enum",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "clearance | transition | interference",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "iface.contact_area",
+      "name": "Contact area",
+      "applies_to": "interface",
+      "datatype": "real",
+      "quantity_kind": "area",
+      "unit": "mm2",
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "iface.axis",
+      "name": "Axis",
+      "applies_to": "interface",
+      "datatype": "vector",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "iface.position",
+      "name": "Position",
+      "applies_to": "interface",
+      "datatype": "vector",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "product.name",
+      "name": "Name",
+      "applies_to": "product",
+      "datatype": "text",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "column:product.name",
+      "derived_from": null
+    },
+    {
+      "property_id": "product.revision",
+      "name": "Revision",
+      "applies_to": "product",
+      "datatype": "text",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "column:product.revision",
+      "derived_from": null
+    },
+    {
+      "property_id": "product.description",
+      "name": "Description",
+      "applies_to": "product",
+      "datatype": "text",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "column:product.description",
+      "derived_from": null
+    },
+    {
+      "property_id": "product.manifest_path",
+      "name": "Manifest path",
+      "applies_to": "product",
+      "datatype": "text",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "column:product.manifest_path",
+      "derived_from": null
+    },
+    {
+      "property_id": "product.created_at",
+      "name": "Created at",
+      "applies_to": "product",
+      "datatype": "text",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "column:product.created_at",
+      "derived_from": null
+    },
+    {
+      "property_id": "document.path",
+      "name": "Path",
+      "applies_to": "document",
+      "datatype": "text",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "column:document.path",
+      "derived_from": null
+    },
+    {
+      "property_id": "document.doc_name",
+      "name": "Document name",
+      "applies_to": "document",
+      "datatype": "text",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "column:document.doc_name",
+      "derived_from": null
+    },
+    {
+      "property_id": "document.format",
+      "name": "Format",
+      "applies_to": "document",
+      "datatype": "text",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "column:document.format",
+      "derived_from": null
+    },
+    {
+      "property_id": "document.sha256",
+      "name": "Checksum",
+      "applies_to": "document",
+      "datatype": "text",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "column:document.sha256",
+      "derived_from": null
+    },
+    {
+      "property_id": "document.tool_version",
+      "name": "Tool version",
+      "applies_to": "document",
+      "datatype": "text",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "column:document.tool_version",
+      "derived_from": null
+    },
+    {
+      "property_id": "document.object_count",
+      "name": "Object count",
+      "applies_to": "document",
+      "datatype": "int",
+      "quantity_kind": "count",
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "column:document.object_count",
+      "derived_from": null
+    },
+    {
+      "property_id": "document.part_count",
+      "name": "Part count",
+      "applies_to": "document",
+      "datatype": "int",
+      "quantity_kind": "count",
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "column:document.part_count",
+      "derived_from": null
+    },
+    {
+      "property_id": "document.ingested_at",
+      "name": "Ingested at",
+      "applies_to": "document",
+      "datatype": "text",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "column:document.ingested_at",
+      "derived_from": null
+    },
+    {
+      "property_id": "occurrence.ref_des",
+      "name": "Reference designator",
+      "applies_to": "occurrence",
+      "datatype": "text",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "column:occurrence.ref_des",
+      "derived_from": null
+    },
+    {
+      "property_id": "occurrence.parent_ref",
+      "name": "Parent ref",
+      "applies_to": "occurrence",
+      "datatype": "text",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "column:occurrence.parent_ref",
+      "derived_from": null
+    },
+    {
+      "property_id": "occurrence.placement",
+      "name": "Placement",
+      "applies_to": "occurrence",
+      "datatype": "vector",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "column:occurrence.placement",
+      "derived_from": null
+    },
+    {
+      "property_id": "occurrence.notes",
+      "name": "Notes",
+      "applies_to": "occurrence",
+      "datatype": "text",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "",
+      "irdi": null,
+      "stored_as": "column:occurrence.notes",
+      "derived_from": null
+    },
+    {
+      "property_id": "occurrence.qty",
+      "name": "Quantity",
+      "applies_to": "occurrence",
+      "datatype": "int",
+      "quantity_kind": "count",
+      "unit": null,
+      "definition": "Source BOM row quantity; migration expands this into N occurrence rows, this property records the original qty for audit",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.mass",
+      "name": "Mass",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "mass",
+      "unit": "kg",
+      "definition": "Volume x density. With the default material the density is assumed (steel) and the fact says so: confidence 0.5, measure_method 'default density'",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.density",
+      "name": "Density",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "density",
+      "unit": "kg/m3",
+      "definition": "Density used for part.mass, from framework/catalog/materials.json by the part's material",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.tight_bbox",
+      "name": "Exact extent",
+      "applies_to": "part",
+      "datatype": "vector",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "The part's exact extent along x, y, z (xmin,xmax,ymin,ymax,zmin,zmax), measured on its exact shape with no tolerance and no control-point hull (the stored part.bbox is the quick box)",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.tight_envelope",
+      "name": "Exact size",
+      "applies_to": "part",
+      "datatype": "vector",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "part.tight_bbox's three sizes sorted largest first (orientation independent)",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.tight_envelope_a",
+      "name": "Length (exact)",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "Largest exact size",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.tight_envelope"
+    },
+    {
+      "property_id": "part.tight_envelope_b",
+      "name": "Width (exact)",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "Middle exact size",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.tight_envelope"
+    },
+    {
+      "property_id": "part.tight_envelope_c",
+      "name": "Thickness / height (exact)",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "Smallest exact size",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.tight_envelope"
+    },
+    {
+      "property_id": "part.connections",
+      "name": "Connection features",
+      "applies_to": "part",
+      "datatype": "map",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "How the part connects, from its measured features: bores, outside diameters, hole patterns, keyways, flats, threads (framework/catalog/pg/partrecord.py)",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.family_params",
+      "name": "Family parameters",
+      "applies_to": "part",
+      "datatype": "map",
+      "quantity_kind": null,
+      "unit": null,
+      "definition": "The values of the parameters its family has (class_property rows with required = true)",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": null
+    },
+    {
+      "property_id": "part.bore_count",
+      "name": "Bores",
+      "applies_to": "part",
+      "datatype": "int",
+      "quantity_kind": "count",
+      "unit": null,
+      "definition": "Bores (holes) of the part: separate bore axes, the part card's grouping",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.connections"
+    },
+    {
+      "property_id": "part.bore_max",
+      "name": "Largest bore",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "Largest bore diameter",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.connections"
+    },
+    {
+      "property_id": "part.bore_min",
+      "name": "Smallest bore",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "Smallest bore diameter",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.connections"
+    },
+    {
+      "property_id": "part.od_max",
+      "name": "Largest outside diameter",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "Largest outside diameter, blends left out",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.connections"
+    },
+    {
+      "property_id": "part.od_min",
+      "name": "Smallest outside diameter",
+      "applies_to": "part",
+      "datatype": "real",
+      "quantity_kind": "length",
+      "unit": "mm",
+      "definition": "Smallest outside diameter, blends left out",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.connections"
+    },
+    {
+      "property_id": "part.od_steps",
+      "name": "Diameter steps",
+      "applies_to": "part",
+      "datatype": "int",
+      "quantity_kind": "count",
+      "unit": null,
+      "definition": "Distinct outside diameters (0.01 mm), blends left out",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.connections"
+    },
+    {
+      "property_id": "part.hole_patterns",
+      "name": "Hole patterns",
+      "applies_to": "part",
+      "datatype": "int",
+      "quantity_kind": "count",
+      "unit": null,
+      "definition": "Groups of 2 or more equal bores on parallel, separate axes, on a circle or in a row",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.connections"
+    },
+    {
+      "property_id": "part.keyways",
+      "name": "Keyways",
+      "applies_to": "part",
+      "datatype": "int",
+      "quantity_kind": "count",
+      "unit": null,
+      "definition": "Keyways: two parallel faces facing each other across a cylinder's axis, narrower than its diameter",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.connections"
+    },
+    {
+      "property_id": "part.flats",
+      "name": "Flats",
+      "applies_to": "part",
+      "datatype": "int",
+      "quantity_kind": "count",
+      "unit": null,
+      "definition": "Flats: a face parallel to a cylinder's axis that cuts into it",
+      "irdi": null,
+      "stored_as": "fact",
+      "derived_from": "part.connections"
+    }
+  ],
+  "classes": [],
+  "class_properties": [
+    {
+      "class_id": "*",
+      "property_id": "part.object",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.label",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.type_id",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.units",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.volume",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.area",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.envelope_a",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.envelope_b",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.envelope_c",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.bbox_xmin",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.bbox_xmax",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.bbox_ymin",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.bbox_ymax",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.bbox_zmin",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.bbox_zmax",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.moment_1",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.moment_2",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.moment_3",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.rgyr_1",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.rgyr_2",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.rgyr_3",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.n_solids",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.n_shells",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.n_faces",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.n_edges",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.n_vertexes",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.n_plane",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.n_cylinder",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.n_cone",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.n_sphere",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.n_torus",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.n_bspline",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.n_other_surf",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.features",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.aspect_1",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.aspect_2",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.fill",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.compactness",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.material",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.volume_method",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.volume_uncertainty",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.area_method",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.area_uncertainty",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.family",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.family_why",
+      "required": false
+    },
+    {
+      "class_id": "bearing",
+      "property_id": "feat.diameter",
+      "required": false
+    },
+    {
+      "class_id": "shaft",
+      "property_id": "feat.diameter",
+      "required": false
+    },
+    {
+      "class_id": "pin/shaft",
+      "property_id": "feat.diameter",
+      "required": false
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.tight_envelope_a",
+      "required": true
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.tight_envelope_b",
+      "required": true
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.tight_envelope_c",
+      "required": true
+    },
+    {
+      "class_id": "*",
+      "property_id": "part.mass",
+      "required": true
+    },
+    {
+      "class_id": "shaft",
+      "property_id": "part.od_max",
+      "required": true
+    },
+    {
+      "class_id": "shaft",
+      "property_id": "part.od_min",
+      "required": true
+    },
+    {
+      "class_id": "shaft",
+      "property_id": "part.od_steps",
+      "required": true
+    },
+    {
+      "class_id": "shaft",
+      "property_id": "part.keyways",
+      "required": true
+    },
+    {
+      "class_id": "shaft",
+      "property_id": "part.flats",
+      "required": true
+    },
+    {
+      "class_id": "shaft",
+      "property_id": "part.bore_count",
+      "required": true
+    },
+    {
+      "class_id": "pin/shaft",
+      "property_id": "part.od_max",
+      "required": true
+    },
+    {
+      "class_id": "pin/shaft",
+      "property_id": "part.od_min",
+      "required": true
+    },
+    {
+      "class_id": "pin/shaft",
+      "property_id": "part.od_steps",
+      "required": true
+    },
+    {
+      "class_id": "pin/shaft",
+      "property_id": "part.keyways",
+      "required": true
+    },
+    {
+      "class_id": "pin/shaft",
+      "property_id": "part.flats",
+      "required": true
+    },
+    {
+      "class_id": "pin/shaft",
+      "property_id": "part.bore_count",
+      "required": true
+    },
+    {
+      "class_id": "crankshaft",
+      "property_id": "part.od_max",
+      "required": true
+    },
+    {
+      "class_id": "crankshaft",
+      "property_id": "part.od_min",
+      "required": true
+    },
+    {
+      "class_id": "crankshaft",
+      "property_id": "part.od_steps",
+      "required": true
+    },
+    {
+      "class_id": "crankshaft",
+      "property_id": "part.keyways",
+      "required": true
+    },
+    {
+      "class_id": "crankshaft",
+      "property_id": "part.flats",
+      "required": true
+    },
+    {
+      "class_id": "crankshaft",
+      "property_id": "part.bore_count",
+      "required": true
+    },
+    {
+      "class_id": "plate/bracket",
+      "property_id": "part.bore_count",
+      "required": true
+    },
+    {
+      "class_id": "plate/bracket",
+      "property_id": "part.bore_max",
+      "required": true
+    },
+    {
+      "class_id": "plate/bracket",
+      "property_id": "part.bore_min",
+      "required": true
+    },
+    {
+      "class_id": "plate/bracket",
+      "property_id": "part.hole_patterns",
+      "required": true
+    },
+    {
+      "class_id": "housing/block",
+      "property_id": "part.bore_max",
+      "required": true
+    },
+    {
+      "class_id": "housing/block",
+      "property_id": "part.bore_count",
+      "required": true
+    },
+    {
+      "class_id": "housing/block",
+      "property_id": "part.hole_patterns",
+      "required": true
+    },
+    {
+      "class_id": "gearbox",
+      "property_id": "part.bore_max",
+      "required": true
+    },
+    {
+      "class_id": "gearbox",
+      "property_id": "part.bore_count",
+      "required": true
+    },
+    {
+      "class_id": "gearbox",
+      "property_id": "part.hole_patterns",
+      "required": true
+    },
+    {
+      "class_id": "bearing",
+      "property_id": "part.bore_min",
+      "required": true
+    },
+    {
+      "class_id": "bearing",
+      "property_id": "part.od_max",
+      "required": true
+    },
+    {
+      "class_id": "fastener",
+      "property_id": "part.od_max",
+      "required": true
+    },
+    {
+      "class_id": "fastener",
+      "property_id": "part.flats",
+      "required": true
+    },
+    {
+      "class_id": "cylinder/actuator",
+      "property_id": "part.bore_max",
+      "required": true
+    },
+    {
+      "class_id": "cylinder/actuator",
+      "property_id": "part.od_max",
+      "required": true
+    },
+    {
+      "class_id": "unclassified",
+      "property_id": "part.bore_count",
+      "required": true
+    },
+    {
+      "class_id": "unclassified",
+      "property_id": "part.od_max",
+      "required": true
+    },
+    {
+      "class_id": "unclassified",
+      "property_id": "part.hole_patterns",
+      "required": true
+    }
+  ],
+  "synonyms": [
+    {
+      "term": "bore",
+      "property_id": "feat.diameter",
+      "role": "bore"
+    },
+    {
+      "term": "od",
+      "property_id": "feat.diameter",
+      "role": "od"
+    },
+    {
+      "term": "journal",
+      "property_id": "feat.diameter",
+      "role": "od"
+    },
+    {
+      "term": "diameter",
+      "property_id": "feat.diameter",
+      "role": null
+    },
+    {
+      "term": "length",
+      "property_id": "part.envelope_a",
+      "role": null
+    },
+    {
+      "term": "width",
+      "property_id": "part.envelope_b",
+      "role": null
+    },
+    {
+      "term": "height",
+      "property_id": "part.envelope_c",
+      "role": null
+    },
+    {
+      "term": "volume",
+      "property_id": "part.volume",
+      "role": null
+    },
+    {
+      "term": "faces",
+      "property_id": "part.n_faces",
+      "role": null
+    },
+    {
+      "term": "area",
+      "property_id": "part.area",
+      "role": null
+    },
+    {
+      "term": "family",
+      "property_id": "part.family",
+      "role": null
+    },
+    {
+      "term": "clearance",
+      "property_id": "iface.clearance",
+      "role": null
+    },
+    {
+      "term": "fit",
+      "property_id": "iface.fit_class",
+      "role": null
+    },
+    {
+      "term": "mass",
+      "property_id": "part.mass",
+      "role": null
+    },
+    {
+      "term": "weight",
+      "property_id": "part.mass",
+      "role": null
+    },
+    {
+      "term": "holes",
+      "property_id": "part.bore_count",
+      "role": null
+    },
+    {
+      "term": "material",
+      "property_id": "part.material",
+      "role": null
+    }
+  ],
+  "record_map": {
+    "part": {
+      "object": "part.object",
+      "label": "part.label",
+      "type_id": "part.type_id",
+      "units": "part.units",
+      "volume_mm3": "part.volume",
+      "area_mm2": "part.area",
+      "bbox_sorted_mm": "part.envelope",
+      "bbox": "part.bbox",
+      "com": "part.com",
+      "moments": "part.moments",
+      "radius_of_gyration": "part.radius_of_gyration",
+      "n_solids": "part.n_solids",
+      "n_shells": "part.n_shells",
+      "n_faces": "part.n_faces",
+      "n_edges": "part.n_edges",
+      "n_vertexes": "part.n_vertexes",
+      "surfaces": "part.surfaces",
+      "curves": "part.curves",
+      "features": "part.features",
+      "shape_ratios": "part.shape_ratios",
+      "params": "part.params",
+      "material": "part.material",
+      "volume_method": "part.volume_method",
+      "volume_uncertainty_mm3": "part.volume_uncertainty",
+      "area_method": "part.area_method",
+      "area_uncertainty_mm2": "part.area_uncertainty",
+      "family": "part.family",
+      "family_why": "part.family_why"
+    },
+    "feature": {
+      "kind": "feat.kind",
+      "role": "feat.role",
+      "dia_mm": "feat.diameter",
+      "radius_mm": "feat.radius",
+      "semi_angle_deg": "feat.semi_angle_legacy",
+      "semi_angle_signed_deg": "feat.semi_angle",
+      "axis": "feat.axis_legacy",
+      "axis_signed": "feat.axis",
+      "pos": "feat.position",
+      "offset_mm": "feat.offset",
+      "extent_mm": "feat.length",
+      "area_mm2": "feat.area",
+      "face_count": "feat.face_count",
+      "bbox": "feat.bbox"
+    },
+    "interface": {
+      "kind": "iface.kind",
+      "nominal_a_mm": "iface.nominal_a",
+      "nominal_b_mm": "iface.nominal_b",
+      "clearance_mm": "iface.clearance",
+      "fit_class": "iface.fit_class",
+      "contact_area_mm2": "iface.contact_area",
+      "axis_x": "iface.axis",
+      "axis_y": "iface.axis",
+      "axis_z": "iface.axis",
+      "pos_x": "iface.position",
+      "pos_y": "iface.position",
+      "pos_z": "iface.position"
+    },
+    "product": {
+      "name": "product.name",
+      "revision": "product.revision",
+      "description": "product.description",
+      "manifest_path": "product.manifest_path",
+      "created_at": "product.created_at"
+    },
+    "document": {
+      "path": "document.path",
+      "doc_name": "document.doc_name",
+      "format": "document.format",
+      "checksum_sha256": "document.sha256",
+      "tool_version": "document.tool_version",
+      "object_count": "document.object_count",
+      "part_count": "document.part_count",
+      "ingested_at": "document.ingested_at"
+    },
+    "occurrence": {
+      "ref_des": "occurrence.ref_des",
+      "qty": "occurrence.qty",
+      "parent_ref": "occurrence.parent_ref",
+      "placement_json": "occurrence.placement",
+      "notes": "occurrence.notes"
+    }
+  }
+}

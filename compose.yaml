@@ -1,0 +1,196 @@
+# Buildcore: the whole stack from one command, run in the repo root:
+#
+#   docker compose up -d          (add --build after a code change)
+#
+# The studio is at http://127.0.0.1:8800 (the only published port, bound to this machine). Postgres stays on the internal
+# compose network; nothing else is published. No env file, secret file or host script is needed. Optional overrides:
+#   BC_PORT                      the host port of the studio (default 8800); it is always bound to 127.0.0.1 only
+#   BUILDCORE_DRAWN_BY           the "Drawn by" name in the drawing title block (default blank)
+#   BUILDCORE_CHECKED_BY         the "Checked by" name in the drawing title block (default blank)
+#   BC_PG_USER, BC_PG_PASSWORD   the database role (default buildcore / buildcore; the database is never published).
+#                                Both go into a postgresql:// URL as they are and into Postgres as they are: use only
+#                                letters, digits and - . _ ~ (no @ / : # ? %). Postgres takes them only when it creates a
+#                                new pgdata volume; to change them later, remove that volume (its data goes with it).
+#   BC_APP_IMAGE                 the app image tag (default buildcore-app:local)
+#   BC_VOLUME_PREFIX             the prefix of the named volumes (default buildcore)
+# Start order: postgres healthy -> orchestrator healthy (its job bus exists) -> catalogue and geometry healthy -> gateway.
+# Then the one-shot `init` service adds the sample parts and the demo assembly that are not there yet, makes the
+# assembly's drawings and exits. Once every sample is there it records a "samples loaded" flag in the database itself
+# (table buildcore_flags) and a later start adds nothing, so a sample you removed stays removed, even after "erase for
+# good", while the database lives. A new database (the pgdata volume removed) gets the samples again.
+# The CLI on a STEP file in this folder: `docker compose run --rm cli drawing part.step` (see the `cli` service below).
+name: buildcore
+
+x-env: &env
+  BC_BIND: "0.0.0.0"
+  SVC_BASE_PORT: "8800"                 # gateway 8800, orchestrator 8801, catalogue 8802, geometry 8804
+  SVC_HOST_GATEWAY: gateway
+  SVC_HOST_ORCHESTRATOR: orchestrator
+  SVC_HOST_CATALOGUE: catalogue
+  SVC_HOST_GEOMETRY: geometry
+  BC_PG_DSN: "postgresql://${BC_PG_USER:-buildcore}:${BC_PG_PASSWORD:-buildcore}@postgres:5432/buildcore"
+  BC_SUPERVISE: containers
+  BC_SET_ID: buildcore                  # the orchestrator counts heartbeats only from services with this id
+  BC_TRACKED_FILES: /app/.tracked-files # the image's file list: the erase guard reads it instead of git
+  BC_CATALOG_DB: /data/sqlite/catalog.db
+  CAD_KERNEL_DB: /data/sqlite/kernel_catalog.db
+  CAD_ENGINE: kernel
+  BUILDCORE_DRAWN_BY: ${BUILDCORE_DRAWN_BY:-}
+  BUILDCORE_CHECKED_BY: ${BUILDCORE_CHECKED_BY:-}
+
+x-data: &data
+  - sqlite:/data/sqlite
+  - work:/app/work
+  - models:/app/models
+  - products:/app/framework/products
+  - files:/app/framework/web/static/files
+  - meshes:/app/framework/web/static/meshes
+
+x-app: &app
+  restart: unless-stopped
+  init: true
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  build:
+    context: .
+    dockerfile: docker/Dockerfile
+    target: app
+  image: ${BC_APP_IMAGE:-buildcore-app:local}
+  volumes: *data
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg17@sha256:ac08538c6f8b9904c33c8224c5e5706dbe760aca29db1d096972b4052c22a75d
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: buildcore
+      POSTGRES_USER: ${BC_PG_USER:-buildcore}
+      POSTGRES_PASSWORD: ${BC_PG_PASSWORD:-buildcore}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./vendor/pgmq/pgmq-v1.13.0.sql:/docker-entrypoint-initdb.d/10-pgmq.sql:ro
+    # TCP on purpose: the first-run init server listens on the socket only, so this goes healthy after the pgmq init
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $${POSTGRES_USER} -d buildcore"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  orchestrator:
+    <<: *app
+    command: ["python", "-m", "framework.orchestrator"]
+    environment:
+      <<: *env
+      BC_SERVICE: orchestrator
+      BC_WHERE: orchestrator
+      BC_STOP_GRACE_S: "45"
+    stop_grace_period: 60s
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import json, urllib.request as u; d = json.load(u.urlopen('http://127.0.0.1:8801/health', timeout=4)); assert (d.get('dispatcher') or {}).get('state') == 'running'"]
+      interval: 10s
+      timeout: 6s
+      retries: 6
+      start_period: 90s
+
+  catalogue:
+    <<: *app
+    command: ["python", "-m", "framework.catalog.service"]
+    environment:
+      <<: *env
+      BC_SERVICE: catalogue
+      BC_WHERE: catalogue
+      BC_STOP_GRACE_S: "60"
+    stop_grace_period: 75s
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8802/health', timeout=4)"]
+      interval: 15s
+      timeout: 6s
+      retries: 3
+      start_period: 180s
+
+  geometry:
+    <<: *app
+    command: ["python", "-m", "framework.kernel.service"]
+    environment:
+      <<: *env
+      BC_SERVICE: geometry
+      BC_WHERE: geometry
+      BC_STOP_GRACE_S: "60"
+    stop_grace_period: 75s
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8804/health', timeout=4)"]
+      interval: 15s
+      timeout: 6s
+      retries: 3
+      start_period: 120s
+
+  gateway:
+    <<: *app
+    command: ["python", "-m", "framework.web.gateway"]
+    ports: ["127.0.0.1:${BC_PORT:-8800}:8800"]
+    environment:
+      <<: *env
+      BC_SERVICE: gateway
+      BC_WHERE: gateway
+      BC_STOP_GRACE_S: "20"
+    stop_grace_period: 30s
+    depends_on:
+      catalogue:
+        condition: service_healthy
+      geometry:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8800/health', timeout=4)"]
+      interval: 15s
+      timeout: 6s
+      retries: 3
+      start_period: 90s
+
+  init:
+    <<: *app
+    restart: "no"
+    command: ["python", "-m", "framework.samples.load", "--url", "http://gateway:8800", "--dir", "/app/samples",
+              "--marker-db"]
+    environment: *env
+    depends_on:
+      gateway:
+        condition: service_healthy
+
+  # The CLI on files of this folder (never started by `up`; the stack must be up):
+  #   docker compose run --rm cli drawing part.step        (also: bom, glb, add, find; outputs -> ./buildcore-out/<name>/)
+  # The clone root is /work in the container, so paths are relative to it. On Linux add --user "$(id -u):$(id -g)" so
+  # the outputs belong to you. Or use scripts/buildcore on the host (plain python3, reaches 127.0.0.1:8800).
+  cli:
+    <<: *app
+    restart: "no"
+    profiles: [cli]
+    entrypoint: ["buildcore"]
+    command: ["--help"]
+    working_dir: /work
+    volumes:
+      - ./:/work
+
+volumes:
+  pgdata:
+    name: ${BC_VOLUME_PREFIX:-buildcore}-pgdata
+  sqlite:
+    name: ${BC_VOLUME_PREFIX:-buildcore}-sqlite
+  work:
+    name: ${BC_VOLUME_PREFIX:-buildcore}-work
+  models:
+    name: ${BC_VOLUME_PREFIX:-buildcore}-models
+  products:
+    name: ${BC_VOLUME_PREFIX:-buildcore}-products
+  files:
+    name: ${BC_VOLUME_PREFIX:-buildcore}-files
+  meshes:
+    name: ${BC_VOLUME_PREFIX:-buildcore}-meshes

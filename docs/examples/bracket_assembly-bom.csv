@@ -1,0 +1,3 @@
+item,name,qty,material,bought_in,ref
+1,Side plate,2,-,no,BRACKET_ASSEMBLY_SIDE_PL
+2,Pin,1,-,no,BRACKET_ASSEMBLY_PIN

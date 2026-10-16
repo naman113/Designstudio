@@ -1,0 +1,1468 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=Barlow:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ---- tokens: layout dye on steel ------------------------------------
+     dye     the deep blue machinists brush onto steel before scribing
+     scribe  the bright line a scriber leaves through the dye
+     steel   the metal under it, for body text
+     brass   shim stock, for anything a human must check              */
+  :root{
+    --dye-900:#0B1322; --dye-800:#101B31; --dye-700:#152442; --dye-600:#1C3059;
+    --rule:#243757; --rule-strong:#33507F;
+    --steel:#B9C3D3; --steel-dim:#7C8AA3; --scribe:#EAF1FA; --scribe-blue:#7FB3FF;
+    --brass:#D9A441; --ok:#62C48A; --bad:#E0646C;
+    --display:"Barlow Condensed",system-ui,sans-serif;
+    --body:"Barlow",system-ui,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    --chat-w:420px; --port-w:250px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:var(--dye-900);color:var(--steel);font:15px/1.5 var(--body)}
+  button,input,textarea{font:inherit}
+  :focus-visible{outline:2px solid var(--scribe-blue);outline-offset:2px}
+
+  /* ---- the sheet frame ------------------------------------------------ */
+  #app{position:relative;height:100%;display:grid;grid-template-columns:var(--port-w) 1fr 0;transition:grid-template-columns .5s cubic-bezier(.2,.8,.2,1)}
+  #frame{position:absolute;inset:12px 12px 12px calc(var(--port-w) + 12px);border:1px solid var(--rule-strong);pointer-events:none;z-index:2}
+  #frame::before{content:"";position:absolute;inset:6px;border:1px solid var(--rule)}
+
+  /* ---- portfolio: every product in the catalogue, click to open ------- */
+  #portfolio{position:relative;z-index:7;display:flex;flex-direction:column;min-width:0;overflow:hidden;
+    background:var(--dye-800);border-right:1px solid var(--rule-strong)}
+  #portHead{padding:16px 16px 10px;border-bottom:1px solid var(--rule)}
+  #addStep,#addPart{display:block;width:100%;margin-top:10px;background:transparent;border:1px dashed var(--rule-strong);color:var(--scribe-blue);
+    font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:.1em;text-transform:uppercase;padding:7px 8px;cursor:pointer}
+  #addStep:hover,#addPart:hover,#portfolio.drop #addStep{border-color:var(--scribe-blue);background:var(--dye-700)}
+  #addStep:disabled,#addPart:disabled{color:var(--steel-dim);cursor:default}
+  #addPart{margin-top:6px}
+  #partMat{display:block;width:100%;max-width:none;margin-top:4px}
+  #upJob{display:none;margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--steel)}
+  #upJob.on{display:block}
+  #upJob .bar{position:relative;height:2px;background:var(--rule);overflow:hidden;margin-bottom:6px}
+  #upJob .bar i{position:absolute;top:0;bottom:0;width:38%;background:var(--scribe-blue);animation:run 1.3s linear infinite}
+  #upJob.done .bar i{animation:none;width:100%;background:var(--ok)} #upJob.err .bar i{animation:none;width:100%;background:var(--bad)}
+  #upJob .ul{white-space:nowrap;overflow:hidden;text-overflow:ellipsis} #upJob.err .ul{white-space:normal;color:var(--brass)}
+  #portHead .t{font-family:var(--display);font-weight:600;font-size:16px;letter-spacing:.12em;text-transform:uppercase;color:var(--scribe)}
+  #portHead .s{display:block;font-family:var(--mono);font-size:11px;color:var(--steel-dim);margin-top:2px}
+  #portList{flex:1;overflow:auto;padding:8px 0}
+  #portSearch{padding:8px 16px;border-bottom:1px solid var(--rule)}
+  #catSearch{display:block;width:100%;background:var(--dye-900);color:var(--scribe);border:1px solid var(--rule-strong);border-radius:0;
+    padding:7px 9px;font-family:var(--mono);font-size:12px;outline:0}
+  #catSearch::placeholder{color:var(--steel-dim)}
+  #catSearch:focus-visible{outline:2px solid var(--scribe-blue);outline-offset:2px}
+  #portList .hit .pm{white-space:normal;line-height:1.4}
+  #portList .scov{padding:10px 16px 4px;font-family:var(--mono);font-size:11px;color:var(--steel-dim)}
+  #portList .shint{padding:10px 16px 4px;font-family:var(--mono);font-size:12px;color:var(--brass)}
+  .prod{display:block;width:100%;text-align:left;cursor:pointer;background:transparent;color:var(--steel);border:0;
+    border-left:2px solid transparent;padding:10px 14px 10px 16px}
+  .prod:hover,.prod:focus-visible{background:var(--dye-700);color:var(--scribe)}
+  .prod.active{border-left-color:var(--scribe-blue);background:var(--dye-700)}
+  .prod .pn{display:block;font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:.04em;text-transform:uppercase;color:var(--scribe);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .prod .pm{display:block;font-family:var(--mono);font-size:11px;color:var(--steel-dim);margin-top:2px}
+  .prod .pd{display:block;font-size:12.5px;color:var(--steel-dim);margin-top:4px;line-height:1.35;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  #portEmpty{padding:16px;color:var(--steel-dim);font-size:13px}
+  #portFoot{padding:10px 16px;border-top:1px solid var(--rule);font-family:var(--mono);font-size:11px;color:var(--steel-dim)}
+
+  /* ---- stage --------------------------------------------------------- */
+  #stage{position:relative;min-width:0;overflow:hidden}
+  #view{position:absolute;inset:0}
+  #view canvas{display:block;width:100% !important;height:100% !important}
+  #empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--steel-dim);
+    font-family:var(--display);font-size:20px;letter-spacing:.04em;text-transform:uppercase;pointer-events:none}
+  #hud{position:absolute;left:34px;top:30px;pointer-events:none}
+  #hud .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--steel-dim);text-transform:uppercase}
+  #hud .name{font-family:var(--display);font-size:26px;font-weight:600;color:var(--scribe);letter-spacing:.01em;line-height:1.1;margin-top:2px}
+
+  /* BOM overlay: a parts list, as on a drawing (hidden while the drawing viewer is open, see #drw) */
+  #bom{position:absolute;left:34px;bottom:34px;width:min(520px,calc(100% - 68px));max-height:46%;overflow:auto;z-index:5;
+    background:rgba(16,27,49,.9);backdrop-filter:blur(6px);border:1px solid var(--rule-strong);display:none}
+  #bom h3{margin:0;padding:8px 12px;font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--steel-dim);border-bottom:1px solid var(--rule)}
+  #bom table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:12.5px}
+  #bom td{padding:6px 12px;border-bottom:1px solid var(--rule);white-space:nowrap;vertical-align:middle}
+  #bom tr:last-child td{border-bottom:0}
+  #bom tr[data-ref]{cursor:pointer} #bom tr[data-ref]:hover td{background:var(--dye-700)}
+  #bom tr.sel td{background:var(--dye-600)} #bom tr.sel td:first-child{box-shadow:inset 2px 0 0 var(--scribe-blue)}
+  /* part card: what the click selected */
+  #partCard{position:absolute;right:34px;top:30px;width:300px;max-height:calc(100% - 330px);overflow:auto;display:none;z-index:3;
+    border:1px solid var(--rule-strong);background:rgba(11,19,34,.94);font-family:var(--mono);font-size:12px;color:var(--steel)}
+  #partCard.on{display:block}
+  #partCard .ph{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;padding:10px 12px 8px;border-bottom:1px solid var(--rule)}
+  #partCard .pr{font-family:var(--display);font-weight:600;font-size:18px;letter-spacing:.04em;color:var(--scribe);word-break:break-all}
+  #partCard .pl{font-family:var(--body);font-size:12.5px;color:var(--steel-dim);margin-top:2px;word-break:break-all}
+  #partCard .px{background:transparent;border:0;color:var(--steel-dim);cursor:pointer;font:inherit;font-size:14px}
+  #partCard .px:hover{color:var(--scribe)}
+  #partCard dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0;padding:8px 12px}
+  #partCard dt{color:var(--steel-dim)} #partCard dd{margin:0;color:var(--scribe);text-align:right}
+  #partCard h4{margin:0;padding:6px 12px;font-family:var(--display);font-weight:600;font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--steel-dim);border-top:1px solid var(--rule)}
+  #partCard table{width:100%;border-collapse:collapse} #partCard td{padding:3px 12px;white-space:nowrap}
+  #partCard td.n{text-align:right;color:var(--scribe)}
+  #partCard tr.feat{cursor:pointer} #partCard tr.feat:hover td{background:var(--dye-700)}
+  #partCard tr.feat.lit td{background:rgba(217,164,65,.16)} #partCard tr.feat.lit td:first-child{box-shadow:inset 2px 0 0 var(--brass)} #partCard .note{padding:6px 12px 10px;color:var(--steel-dim);font-size:11px}
+  #bom td.num{text-align:right;color:var(--steel-dim)}
+  #bom td.lbl{font-family:var(--body);color:var(--scribe)}
+  .sw{display:inline-block;width:10px;height:10px;margin-right:8px;vertical-align:-1px;border:1px solid rgba(0,0,0,.35)}
+  #bom .eye{background:none;border:0;padding:0 8px 0 0;color:var(--steel-dim);cursor:pointer;font:inherit}
+  #bom .eye[aria-pressed=false]{opacity:.45} #bom tr.off td{opacity:.5}
+  #bom .ifs{padding:8px 12px;font-family:var(--mono);font-size:12px;color:var(--steel-dim);border-top:1px solid var(--rule-strong);line-height:1.7}
+  #bom .ifs b{color:var(--steel);font-weight:500}
+
+  /* the signature: a live title block, bottom-right, as on every drawing */
+  #tb{position:absolute;right:34px;bottom:34px;width:300px;border:1px solid var(--rule-strong);background:rgba(11,19,34,.92);
+    font-family:var(--mono);font-size:11.5px;color:var(--steel);z-index:3}
+  #tb .row{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--rule)}
+  #tb .row:first-child{border-top:0}
+  #tb .cell{padding:6px 10px;border-left:1px solid var(--rule);min-width:0}
+  #tb .cell:first-child{border-left:0}
+  #tb .cell.wide{grid-column:1/3}
+  #tb .k{display:block;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--steel-dim)}
+  #tb .v{display:block;color:var(--scribe);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #tb .v.display{font-family:var(--display);font-size:17px;font-weight:600;letter-spacing:.02em}
+  #tb .v.brass{color:var(--brass)}
+  #tb .v.dim{color:var(--steel-dim)}
+
+  /* explicit columns: an item hidden at a breakpoint (the portfolio) never shifts the others */
+  #portfolio{grid-column:1} #stage{grid-column:2}
+  /* download: the sheet's one outward action */
+  #dl{display:none;pointer-events:auto;margin-top:10px;font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--scribe-blue);border:1px solid var(--rule-strong);padding:5px 10px;text-decoration:none;background:rgba(11,19,34,.6)}
+  #dl.on{display:inline-block} #dl:hover{border-color:var(--scribe-blue)} #dl.busy{color:var(--steel-dim);pointer-events:none}
+
+  @keyframes run{from{left:-40%}to{left:100%}}
+
+  /* ---- small tool buttons: one look for the 3D toolbar, the drawing bar and confirms ---- */
+  .tbtn{background:rgba(11,19,34,.6);border:1px solid var(--rule-strong);color:var(--steel);font-family:var(--display);font-weight:600;font-size:12px;
+    letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;min-width:28px;line-height:1.5;text-align:center;text-decoration:none;cursor:pointer;white-space:nowrap}
+  .tbtn:hover{border-color:var(--scribe-blue);color:var(--scribe)} .tbtn:disabled{opacity:.4;cursor:default;border-color:var(--rule-strong)}
+  .tbtn.bad{color:var(--bad)} .tbtn.bad:hover{border-color:var(--bad)}
+  .tbtn[aria-pressed=true]{background:var(--dye-600);color:var(--scribe);border-color:var(--scribe-blue)}
+  .tsel{background:var(--dye-700);color:var(--scribe);border:1px solid var(--rule-strong);font:12px var(--mono);padding:3px 4px;max-width:180px}
+  /* HUD actions beside Download */
+  .hb{display:none;pointer-events:auto;margin:10px 0 0 8px;font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--scribe-blue);border:1px solid var(--rule-strong);padding:5px 10px;background:rgba(11,19,34,.6);cursor:pointer}
+  .hb.on{display:inline-block} .hb:hover{border-color:var(--scribe-blue)}
+  .hb.busy{opacity:.7;cursor:progress}
+  #drwMade{font:12px var(--mono);color:var(--steel);align-self:center;max-width:420px}
+  .hb.stale{color:#e0a43a;border-color:#8a6a2a} .hb.stale:hover{border-color:#e0a43a}      /* out of date (amber), try again after a failure */
+  .hb.bad{color:var(--bad);border-color:var(--bad)}
+  #drwStale{font:12px var(--mono);color:#e0a43a;padding:5px 12px;background:var(--dye-800);border-bottom:1px solid var(--rule-strong);display:flex;gap:10px;align-items:center}
+  #drwStale[hidden]{display:none}
+  #drwStale button{margin-left:auto;background:none;border:0;color:var(--steel);cursor:pointer;font:12px var(--mono)}
+  #drwFailed{font:12px var(--mono);color:var(--bad);padding:5px 12px;background:var(--dye-800);border-bottom:1px solid var(--rule-strong)}
+  .hb.rm{color:var(--steel-dim)} .hb.rm:hover{color:var(--bad);border-color:var(--bad)}
+  #hud{max-width:calc(100% - 68px)}
+  /* 3D view toolbar and the mouse hint under it */
+  #vtools{display:none;flex-wrap:wrap;gap:4px;margin-top:10px;pointer-events:auto} #vtools.on{display:flex}
+  #vtools .gap{width:6px}
+  #vhint{margin-top:6px;max-width:470px;font-family:var(--mono);font-size:11px;line-height:1.5;color:var(--steel-dim);background:rgba(11,19,34,.78);
+    padding:4px 8px;opacity:0;transition:opacity .6s}
+  #vhint.on{opacity:1}
+  /* in-page confirm: never a browser dialog */
+  .cfm{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:2px 8px 6px;padding:8px 10px;border:1px solid var(--brass);
+    background:var(--dye-700);color:var(--scribe);font-size:12.5px;line-height:1.35;pointer-events:auto}
+  .cfm b{font-weight:500} .cfm .cb{display:flex;gap:6px}
+  .cfm .ce{flex-basis:100%;font-family:var(--mono);font-size:11px;color:var(--brass)} .cfm .ce:empty{display:none}
+  #hud .cfm{margin:10px 0 0;max-width:420px}
+  #toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);z-index:30;display:flex;align-items:center;gap:12px;max-width:calc(100vw - 32px);
+    padding:8px 10px 8px 14px;background:var(--dye-700);border:1px solid var(--rule-strong);color:var(--scribe);font-size:13.5px;
+    opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
+  #toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+
+  /* ---- portfolio: delete, recently deleted ---- */
+  .prow{position:relative} .prow .prod{padding-right:36px}
+  .prow .del{position:absolute;right:8px;top:9px;width:24px;height:24px;padding:0;display:grid;place-items:center;background:var(--dye-800);
+    border:1px solid var(--rule-strong);color:var(--steel-dim);font-size:12px;line-height:1;cursor:pointer;opacity:0;transition:opacity .15s}
+  .prow:hover .del,.prow:focus-within .del{opacity:1}
+  .prow .del:hover{color:var(--bad);border-color:var(--bad)}
+  @media (hover:none){.prow .del{opacity:1}}
+  .prod .pdw{color:var(--scribe-blue)}
+  #trash{display:none;border-top:1px solid var(--rule);max-height:40%;overflow:auto} #trash.on{display:block}
+  #trash .th{display:block;width:100%;text-align:left;background:transparent;border:0;cursor:pointer;padding:8px 16px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--steel-dim)}
+  #trash .th:hover{color:var(--scribe)}
+  #trash .ti{padding:6px 16px 8px;border-top:1px solid var(--rule)}
+  #trash .tn{display:block;color:var(--scribe);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #trash .tk{display:block;font-family:var(--mono);font-size:10.5px;color:var(--steel-dim)}
+  #trash .ta{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:5px}
+  #trash .tnote{font-family:var(--mono);font-size:10.5px;color:var(--steel-dim)}
+  #trash .cfm{margin:6px 0 0}
+
+  /* ---- drawing viewer: a sheet on the table, over the 3D view (which keeps its state) ---- */
+  #drw{position:absolute;inset:0;z-index:4;display:flex;flex-direction:column;background:var(--dye-900)}
+  #drw[hidden]{display:none}
+  /* an open drawing is never covered: the parts list and the title block step aside until it closes */
+  #stage:has(> #drw:not([hidden])) > #bom, #stage:has(> #drw:not([hidden])) > #tb{display:none !important}
+  #drw .dbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:8px 12px;background:var(--dye-800);border-bottom:1px solid var(--rule-strong)}
+  #drwTitle{flex:1 1 180px;min-width:0;font-family:var(--display);font-weight:600;font-size:16px;letter-spacing:.04em;text-transform:uppercase;
+    color:var(--scribe);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #drw .dg{display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+  #drw .dg .sp{width:6px}
+  #drwPct,#drwPage{font-family:var(--mono);font-size:11.5px;color:var(--scribe);min-width:48px;text-align:center}
+  #drwPager{display:none;align-items:center;gap:4px} #drwPager.on{display:inline-flex}
+  #drwPort{position:relative;flex:1;min-height:0;overflow:hidden;cursor:grab;touch-action:none;user-select:none;
+    background:var(--dye-900) radial-gradient(var(--rule) 1px,transparent 1.2px) 0 0/24px 24px}
+  #drwPort.grab{cursor:grabbing} #drwPort:focus{outline:none} #drwPort:focus-visible{outline:2px solid var(--scribe-blue);outline-offset:-2px}
+  #drwPort > canvas{position:absolute;left:0;top:0;transform-origin:0 0}
+  #drwMsg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;
+    font-family:var(--mono);font-size:12px;color:var(--steel-dim);pointer-events:none}
+  #drwMsg:empty{display:none}
+  #drwMini{position:absolute;right:16px;bottom:16px;display:none;border:1px solid var(--rule-strong);background:#fff;cursor:crosshair;touch-action:none}
+  #drwMini.on{display:block} #drwMini canvas{display:block}
+  #drwMini i{position:absolute;border:1.5px solid var(--brass);background:rgba(217,164,65,.16);pointer-events:none}
+  #drwHint{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);max-width:calc(100% - 220px);padding:4px 8px;background:rgba(11,19,34,.85);
+    border:1px solid var(--rule);font-family:var(--mono);font-size:11px;color:var(--steel-dim);text-align:center;pointer-events:none;opacity:0;transition:opacity .6s}
+  #drwHint.on{opacity:1}
+
+  @media (max-width:700px){
+    #drwHint{display:none} #drwMini{right:8px;bottom:8px}
+    #drw .dbar{padding:6px 8px} .tsel{max-width:120px}
+  }
+  @media (max-width:1100px){
+    :root{--port-w:0px}
+    #portfolio{display:none}
+  }
+  @media (max-width:900px){
+    #tb{display:none} #bom{width:calc(100% - 68px)}
+    #drw{position:fixed;z-index:8}        /* a drawing opens full screen, ✕ returns */
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none !important;transition:none !important}
+  }
+  /* ---- panels that fold away ----
+     A fold button (.fold) is the title of two panels (portfolio, parts list). Folded, a panel keeps only its title
+     bar. Wide (> 1100 px): a vertical strip of --fold-w beside the 3D view; its grid column shrinks and the view takes the room.
+     Stacked (<= 1100 px): a horizontal bar. Classes: #portfolio / #bom .folded, and html .f-port
+     (it only drives the grid columns). The state is kept in localStorage `ds.panels`. */
+  :root{--fold-w:40px;--chat-cw:var(--chat-w);--team-cw:var(--team-w)}
+  .fold{display:inline-flex;align-items:center;gap:8px;margin:0;padding:0;background:transparent;border:0;cursor:pointer;text-align:left;font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit}
+  .fold::before{content:"";flex:none;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid var(--steel-dim);
+    transition:transform .2s}
+  .fold:hover::before,.fold:focus-visible::before{border-top-color:var(--scribe-blue)}
+  .fold[aria-expanded=false]::before{transform:rotate(-90deg)}
+  .fbadge{display:inline-flex;align-items:center;justify-content:center;flex:none;min-width:18px;height:18px;padding:0 5px;background:var(--brass);color:var(--dye-900);
+    font-family:var(--mono);font-size:11px;font-weight:500;line-height:1}
+  .fbadge[hidden]{display:none}
+  #portfolio.folded > :not(#portHead),#portfolio.folded #portHead > :not(.fold),
+  #bom.folded > :not(h3){display:none}
+  #bom.folded{width:auto;max-height:none;overflow:visible}
+  #bom.folded h3{border-bottom:0}
+  #portfolio.folded #portHead{border-bottom:0}
+  @media (min-width:1101px){
+    html.f-port{--port-w:var(--fold-w)} html.f-chat{--chat-cw:var(--fold-w)} html.f-team{--team-cw:var(--fold-w)}
+    #portfolio.folded #portHead{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:12px;padding:14px 0}
+    #portfolio.folded .fold{writing-mode:vertical-rl;gap:10px;white-space:nowrap}
+  }
+</style>
+<link rel="stylesheet" href="/static/rail.css">
+<script src="/static/rail.js" defer></script>
+<script src="/static/catphrase.js"></script>
+</head>
+<body>
+<div id="app">
+  <div id="frame" aria-hidden="true"></div>
+  <nav id="portfolio" aria-label="Product portfolio">
+    <div id="portHead"><button type="button" class="t fold" data-fold="port" aria-expanded="true" title="Fold the portfolio">Portfolio</button><span class="s" id="portCount">loading</span>
+      <button id="addStep" type="button" title="Open an assembly STEP for drawings, BOM and 3D (or drop it here)">+ Open assembly</button><input id="stepFile" type="file" accept=".step,.stp,.STEP,.STP" multiple hidden>
+      <button id="addPart" type="button" title="Add one part (one solid) to the catalogue">+ Add part to catalogue</button><select id="partMat" class="tsel" title="Material of the part" aria-label="Material of the part"><option value="">Material: from the file, else steel</option></select><input id="partFile" type="file" accept=".step,.stp,.STEP,.STP" hidden><div id="upJob"><div class="bar"><i></i></div><div class="ul" id="upLabel"></div></div></div>
+    <div id="portSearch"><input id="catSearch" type="text" placeholder="Search: bore 38-42, family crankshaft" aria-label="Search the catalogue" autocomplete="off" spellcheck="false"></div>
+    <div id="portList"></div>
+    <div id="trash"></div>
+    <div id="portFoot">Select a product to open it</div>
+  </nav>
+  <div id="stage">
+    <div id="view"></div>
+    <div id="empty">No design on the sheet yet</div>
+    <div id="hud"><div class="eyebrow" id="hudEyebrow"></div><div class="name" id="hudName"></div><a id="dl" href="#" download>Download STEP</a><a id="dlGlb" class="hb" href="#" download title="Download the 3D model as GLB">GLB</a><a id="dlCsv" class="hb" href="#" download title="Download the bill of materials as CSV">BOM CSV</a><a id="dlJson" class="hb" href="#" download title="Download the bill of materials as JSON">BOM JSON</a><button id="dwgBtn" class="hb" type="button" title="Open the drawings of this design">Drawings</button><button id="drwBtn" class="hb" type="button" title="Show the last drawing again (the 3D view is kept)">Last drawing</button><button id="rmBtn" class="hb rm" type="button" title="Remove this design from the portfolio">Remove</button>
+      <div id="vtools" role="toolbar" aria-label="3D view controls">
+        <button type="button" class="tbtn" data-v="fit" title="Fit everything (F, or double-click empty space)">Fit</button><button type="button" class="tbtn" data-v="in" title="Zoom in (+)">+</button><button type="button" class="tbtn" data-v="out" title="Zoom out (&minus;)">&minus;</button><span class="gap"></span>
+        <button type="button" class="tbtn" data-v="front" title="Front view (1)">Front</button><button type="button" class="tbtn" data-v="top" title="Top view (7)">Top</button><button type="button" class="tbtn" data-v="right" title="Right view (3)">Right</button><button type="button" class="tbtn" data-v="iso" title="Iso view (0)">Iso</button><span class="gap"></span>
+        <button type="button" class="tbtn" data-v="proj" id="vtProj" title="Switch to a parallel (orthographic) view (P)">Persp</button><button type="button" class="tbtn" data-v="help" id="vtHelp" title="Mouse and keyboard controls" aria-expanded="false">?</button>
+      </div>
+      <div id="vhint">Drag to turn · right-drag or Shift+drag to move · wheel zooms where you point · double-click a part to frame it, empty space to fit all · keys: F fit · 1 front · 3 right · 7 top · 0 iso · + &minus; zoom · P projection</div></div>
+    <div id="bom"></div>
+    <div id="partCard" aria-live="polite"></div>
+    <section id="drw" hidden aria-label="Drawing">
+      <div class="dbar">
+        <span id="drwTitle"></span>
+        <div class="dg">
+          <span id="drwMade" hidden></span><button type="button" class="tbtn" id="drwAgain" hidden>Make again</button><button type="button" class="tbtn bad" id="drwStop" hidden title="Stop making the drawings (the last drawings are kept)">Stop</button>
+          <select id="drwRev" class="tsel" hidden aria-label="Revision"></select><select id="drwSheets" class="tsel" hidden aria-label="Sheet"></select>
+          <span id="drwPager"><button type="button" class="tbtn" data-d="prev" title="Previous page (Page Up)">&lsaquo;</button><span id="drwPage">1 / 1</span><button type="button" class="tbtn" data-d="next" title="Next page (Page Down)">&rsaquo;</button></span><span class="sp"></span>
+          <button type="button" class="tbtn" data-d="out" title="Zoom out (&minus;)">&minus;</button><span id="drwPct">100%</span><button type="button" class="tbtn" data-d="in" title="Zoom in (+)">+</button><span class="sp"></span>
+          <button type="button" class="tbtn" data-d="page" title="Fit the whole page (0)">Fit page</button><button type="button" class="tbtn" data-d="width" title="Fit the page width">Fit width</button><button type="button" class="tbtn" data-d="one" title="Actual size">100%</button><button type="button" class="tbtn" data-d="rot" title="Rotate 90&deg;">Rotate</button><span class="sp"></span>
+          <a id="drwSharp" class="tbtn" href="#" target="_blank" rel="noopener" hidden title="Open a sharp, zoomable copy of this sheet in a new tab">Open sharp copy</a><a id="drwDl" class="tbtn" href="#" download>Download</a><button type="button" class="tbtn" data-d="close" title="Back to the 3D view (Esc)">&#x2715; 3D view</button>
+        </div>
+      </div>
+      <div id="drwStale" hidden><span id="drwStaleText"></span><button type="button" id="drwStaleX" title="Close this note" aria-label="Close this note">&#x2715;</button></div>
+      <div id="drwFailed" hidden></div>
+      <div id="drwPort" tabindex="0" aria-label="Drawing sheet: drag to move, wheel or pinch to zoom"><canvas id="drwBase" width="1" height="1"></canvas><div id="drwMsg"></div></div>
+      <div id="drwMini" title="Where you are on the sheet. Click or drag to move there."><canvas width="1" height="1"></canvas><i></i></div>
+      <div id="drwHint">Wheel zooms where you point · drag to move · double-click zooms in · keys: + &minus; zoom · 0 fit · arrows move · Page Up/Down pages · Esc back to 3D</div>
+    </section>
+    <div id="tb" aria-label="Title block">
+      <div class="row"><div class="cell wide"><span class="k" id="tbProductK">Product</span><span class="v display" id="tbProduct">—</span></div></div>
+      <div class="row">
+        <div class="cell"><span class="k">Revision</span><span class="v" id="tbRev">—</span></div>
+        <div class="cell"><span class="k" id="tbCountsK">Parts / interfaces</span><span class="v" id="tbCounts">—</span></div>
+      </div>
+      <div class="row">
+        <div class="cell"><span class="k">Drawn by</span><span class="v" id="tbDrawn"></span></div>
+        <div class="cell"><span class="k">Checked by</span><span class="v brass" id="tbChecked"></span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script type="importmap">
+{"imports":{
+  "three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const $ = s => document.querySelector(s);
+/* ---------- the design on the sheet: `current` is its product id, kept across a reload (localStorage `ds.product`) ---------- */
+let current = null;
+try { current = localStorage.getItem('ds.product') || null; } catch (e) {}
+function remember() { try { if (current) localStorage.setItem('ds.product', current); else localStorage.removeItem('ds.product'); } catch (e) {} }
+/* ---------- panels that fold away. The portfolio and the parts list fold to a slim titled bar; the 3D view takes the room.
+   The folded state is kept per viewer in localStorage `ds.panels` (storage errors and a broken value leave every panel open). ---------- */
+const PANELS = {
+  port: { el: '#portfolio', cls: 'folded', root: 'f-port', name: 'the portfolio' },
+  bom: { el: '#bom', cls: 'folded', root: null, name: 'the parts list' },
+};
+const folded = { port: false, bom: false };
+try { const s = JSON.parse(localStorage.getItem('ds.panels') || 'null'); if (s && typeof s === 'object') for (const k in folded) folded[k] = s[k] === true; } catch (e) {}
+function applyFold(k) {
+  const P = PANELS[k], on = folded[k], el = $(P.el);
+  if (el) el.classList.toggle(P.cls, on);
+  if (P.root) document.documentElement.classList.toggle(P.root, on);
+  document.querySelectorAll(`.fold[data-fold="${k}"]`).forEach(b => { b.setAttribute('aria-expanded', String(!on)); b.title = (on ? 'Open ' : 'Fold ') + P.name; });
+}
+function foldPanel(k, on) {
+  folded[k] = on; applyFold(k);
+  try { localStorage.setItem('ds.panels', JSON.stringify(folded)); } catch (e) {}
+  requestAnimationFrame(() => resize()); setTimeout(() => resize(), 600);    // the page's own resize path; the grid column animates for .5 s (the view's ResizeObserver follows each frame too)
+}
+document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('.fold[data-fold]'); if (b && PANELS[b.dataset.fold]) foldPanel(b.dataset.fold, !folded[b.dataset.fold]); });
+Object.keys(PANELS).forEach(applyFold);
+const ago = t => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'now' : m < 60 ? m + ' min' : m < 1440 ? Math.round(m / 60) + ' h' : Math.round(m / 1440) + ' d'; };
+/* the empty sheet: 3D view, HUD, parts list, title block */
+function clearView() {
+  if (model) { scene.remove(model); model = null; } grid.visible = false;
+  $('#bom').style.display = 'none'; $('#empty').style.display = ''; $('#empty').textContent = 'No design on the sheet yet';
+  $('#hudEyebrow').textContent = ''; $('#hudName').textContent = ''; $('#dl').className = ''; ['#dlGlb', '#dlCsv', '#dlJson'].forEach(s => { $(s).className = 'hb'; });
+  shownProduct = null; selected = null; picked = new Set(); $('#partCard').className = ''; $('#partCard').innerHTML = '';
+  $('#tbProduct').textContent = '—'; $('#tbRev').textContent = '—'; $('#tbCounts').textContent = '—';
+  productSheets = []; $('#vtools').classList.remove('on'); $('#rmBtn').className = 'hb rm';
+  document.querySelectorAll('#hud .cfm').forEach(x => x.remove());
+  if (D.owner) closeDrawing(true);          // a sheet that belonged to what was on screen goes with it
+  updateDrwBtns(); markActive();
+}
+
+/* ---------- 3D ---------- */
+const view = $('#view');
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0B1322);
+const persp = new THREE.PerspectiveCamera(38, 1, 0.1, 100000), ortho = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100000);
+let camera = persp, orthoH = 1;            // orthoH: the parallel view's frame height at zoom 1
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;   // soft studio reflections on metal
+view.appendChild(renderer.domElement);
+const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true;
+controls.zoomToCursor = true; controls.screenSpacePanning = true;       // wheel zooms where you point; right-drag / Shift+drag moves in the screen plane
+controls.addEventListener('start', () => { camAnim = null; });          // a drag always wins over a running camera move
+scene.add(new THREE.HemisphereLight(0xdfe8ff, 0x1c3059, 1.0));
+const key = new THREE.DirectionalLight(0xffffff, 1.5); key.position.set(3, 5, 4); scene.add(key);
+const fill = new THREE.DirectionalLight(0x7fb3ff, 0.45); fill.position.set(-4, -2, -3); scene.add(fill);
+const grid = new THREE.GridHelper(400, 20, 0x33507F, 0x1C3059); grid.visible = false; scene.add(grid);
+let model = null;
+const PALETTE = [0xC9D1DC, 0x7FB3FF, 0xD9A441, 0x62C48A, 0xE0646C, 0xB39DDB, 0x80DEEA, 0xFFAB91];
+// identical parts share one colour. `sameGroup` = {ref: group number} from the product
+// data; a group past the palette gets its own hue (golden-angle steps), so 26 groups never repeat a colour.
+let sameGroup = {};
+const groupColor = g => g < PALETTE.length ? PALETTE[g] : new THREE.Color().setHSL(((g * 0.618034) % 1), 0.55, 0.62).getHex();
+function resize() {
+  const w = view.clientWidth, h = view.clientHeight; if (!w || !h) return;
+  // updateStyle stays TRUE: with it off, a scaled Windows display draws the canvas at 2x.
+  renderer.setSize(w, h, true); persp.aspect = w / h; persp.updateProjectionMatrix(); orthoFrustum();
+}
+function orthoFrustum() {
+  const a = persp.aspect;
+  Object.assign(ortho, { left: -orthoH * a / 2, right: orthoH * a / 2, top: orthoH / 2, bottom: -orthoH / 2 }); ortho.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(view); resize();
+let lastT = performance.now(), camAnim = null;
+(function loop(now) { now = now || performance.now(); const dt = Math.min(0.1, (now - lastT) / 1000); lastT = now;
+  if (camAnim) stepCam(now);
+  controls.update(); renderer.render(scene, camera); requestAnimationFrame(loop); })();
+const HOME = new THREE.Vector3(1.5, 1.1, 1.6);   // the opening view: front-right, from above
+let modelR = 1;
+function fitCamera(obj) {
+  const box = new THREE.Box3().setFromObject(obj);
+  const size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3());
+  modelR = Math.max(size.length() / 2, 1e-3);
+  frameBox(box, HOME, false);
+  grid.position.set(c.x, box.min.y - 0.5, c.z); grid.scale.setScalar(Math.max(size.x, size.z) / 200); grid.visible = true;
+}
+/* where the camera stands to see a box from a direction: every corner inside the frame, a little margin */
+function framing(box, dir) {
+  const c = box.getCenter(new THREE.Vector3()), d = dir.clone().normalize();
+  const m = new THREE.Matrix4().lookAt(d, new THREE.Vector3(), camera.up);
+  const ax = [0, 1, 2].map(i => new THREE.Vector3().setFromMatrixColumn(m, i));      // screen right, screen up, towards the eye
+  const tv = Math.tan(THREE.MathUtils.degToRad(persp.fov / 2)), th = tv * persp.aspect;
+  let dist = 1e-3, half = 1e-3;
+  for (let i = 0; i < 8; i++) {
+    const p = new THREE.Vector3(i & 1 ? box.max.x : box.min.x, i & 2 ? box.max.y : box.min.y, i & 4 ? box.max.z : box.min.z).sub(c);
+    const x = Math.abs(p.dot(ax[0])), y = Math.abs(p.dot(ax[1])), z = p.dot(ax[2]);
+    dist = Math.max(dist, z + x / th, z + y / tv); half = Math.max(half, y, x / persp.aspect);
+  }
+  dist *= 1.08; half *= 1.08;
+  return { c, pos: c.clone().add(d.multiplyScalar(dist)), dist, half };
+}
+function frameBox(box, dir, anim = true) {
+  if (box.isEmpty()) return;
+  const f = framing(box, dir || camera.position.clone().sub(controls.target));
+  for (const k of [persp, ortho]) { k.near = f.dist / 100; k.far = f.dist * 50 + modelR * 20; k.updateProjectionMatrix(); }
+  moveCam(f.pos, f.c, camera.isOrthographicCamera ? orthoH / (2 * f.half) : 1, anim);
+}
+/* a short eased camera move: direction and distance are blended separately so it swings round, not through, the design */
+function moveCam(pos, target, zoom, anim) {
+  const a = { p: camera.position.clone(), t: controls.target.clone(), z: camera.zoom }, b = { p: pos.clone(), t: target.clone(), z: zoom };
+  camAnim = { a, b, t0: performance.now(), dur: anim && !matchMedia('(prefers-reduced-motion: reduce)').matches ? 450 : 0 };
+  stepCam(camAnim.t0);
+}
+function stepCam(now) {
+  const { a, b, t0, dur } = camAnim, k = dur ? Math.min(1, (now - t0) / dur) : 1, e = k < .5 ? 4 * k * k * k : 1 - (-2 * k + 2) ** 3 / 2;
+  const da = a.p.clone().sub(a.t), db = b.p.clone().sub(b.t), len = da.length() + (db.length() - da.length()) * e;
+  const dir = da.normalize().lerp(db.clone().normalize(), e); if (dir.lengthSq() < 1e-8) dir.copy(db);
+  controls.target.lerpVectors(a.t, b.t, e); camera.position.copy(controls.target).add(dir.setLength(len));
+  camera.zoom = a.z + (b.z - a.z) * e; camera.updateProjectionMatrix();
+  if (k >= 1) camAnim = null;
+}
+const VIEWS = { front: [0, 0, 1], top: [0, 1, 1e-4], right: [1, 0, 0], iso: [1.5, 1.1, 1.6] };   // three.js axes; the design is Z-up turned Y-up
+const focusObj = () => model;
+function viewFrom(name) { const o = focusObj(); if (o) frameBox(new THREE.Box3().setFromObject(o), new THREE.Vector3(...VIEWS[name]), true); }
+function fitAll() { const o = focusObj(); if (o) frameBox(new THREE.Box3().setFromObject(o), null, true); }
+function zoomBy(f) {
+  if (!focusObj()) return;
+  if (camera.isOrthographicCamera) moveCam(camera.position, controls.target, camera.zoom * f, true);
+  else moveCam(controls.target.clone().add(camera.position.clone().sub(controls.target).divideScalar(f)), controls.target, 1, true);
+}
+function toggleProjection() {
+  const t = controls.target, off = camera.position.clone().sub(t), tv = Math.tan(THREE.MathUtils.degToRad(persp.fov / 2));
+  camAnim = null;
+  if (camera === persp) {                 // same framing: the parallel frame is as tall as the perspective one at the target
+    orthoH = 2 * off.length() * tv; ortho.position.copy(persp.position); ortho.quaternion.copy(persp.quaternion); ortho.zoom = 1;
+    ortho.near = persp.near; ortho.far = persp.far; camera = ortho; orthoFrustum();
+  } else {
+    persp.position.copy(t).add(off.setLength(orthoH / ortho.zoom / (2 * tv))); persp.quaternion.copy(ortho.quaternion);
+    persp.near = ortho.near; persp.far = ortho.far; camera = persp; persp.updateProjectionMatrix();
+  }
+  controls.object = camera; controls.update();
+  const b = $('#vtProj'); b.textContent = camera === persp ? 'Persp' : 'Ortho';
+  b.title = camera === persp ? 'Switch to a parallel (orthographic) view (P)' : 'Switch to a perspective view (P)';
+}
+let hinted = false, hintT = 0;
+function flashHint() {
+  if (hinted) return; hinted = true;
+  const h = $('#vhint'); h.classList.add('on'); clearTimeout(hintT);
+  hintT = setTimeout(() => { if ($('#vtHelp').getAttribute('aria-expanded') !== 'true') h.classList.remove('on'); }, 7000);
+}
+$('#vtools').addEventListener('click', e => {
+  const b = e.target.closest('button[data-v]'); if (!b) return;
+  const v = b.dataset.v;
+  if (v === 'fit') fitAll(); else if (v === 'in') zoomBy(1.4); else if (v === 'out') zoomBy(1 / 1.4);
+  else if (v === 'proj') toggleProjection();
+  else if (v === 'help') { const on = b.getAttribute('aria-expanded') !== 'true'; b.setAttribute('aria-expanded', on); clearTimeout(hintT); $('#vhint').classList.toggle('on', on); }
+  else viewFrom(v);
+});
+const EDGE_OPACITY = 0.55;
+async function showMesh(url, product) {
+  const glb = /\.glb(\?|$)/.test(url);
+  const group = glb ? (await new GLTFLoader().loadAsync(url)).scene : await new OBJLoader().loadAsync(url);
+  const legend = putModel(group, { glb });
+  renderBom(product, legend);
+}
+/* put a loaded design on the sheet */
+function putModel(group, { glb = true } = {}) {
+  if (model) scene.remove(model);
+  model = group; model.rotation.x = -Math.PI / 2;   // CAD Z-up to three.js Y-up
+  let i = 0; const legend = {};
+  model.traverse(o => {
+    if (o.userData && o.userData.ref) o.name = o.userData.ref;              // the loader cleans names; the ref is kept in extras
+    if (o.isLineSegments || o.isLine) {                                      // true CAD edges, drawn crisp over the surfaces
+      o.name = ''; o.raycast = () => {};
+      o.material = new THREE.LineBasicMaterial({ color: 0x0A1428, transparent: true, opacity: EDGE_OPACITY });
+      return;
+    }
+    if (!o.isMesh) return;
+    let n = o; while (n && sameGroup[n.name] === undefined) n = n.parent;     // the part's ref may sit on a parent node
+    const g = n ? sameGroup[n.name] : undefined;
+    const col = g !== undefined ? groupColor(g) : PALETTE[i % PALETTE.length]; i++;
+    if (!glb) o.geometry.computeVertexNormals();                            // old meshes carry no normals
+    o.material = new THREE.MeshStandardMaterial({ color: col, metalness: 0.35, roughness: 0.42, envMapIntensity: 0.8,
+      polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });   // keeps the edge lines on top
+    legend[o.name || ('part ' + i)] = col;
+  });
+  scene.add(model); fitCamera(model);
+  $('#empty').style.display = 'none'; $('#vtools').classList.add('on'); flashHint();
+  return legend;
+}
+function renderBom(p, legend) {
+  if (!p) return;
+  $('#rmBtn').className = 'hb rm on';
+  if (!shownProduct || shownProduct.product_id !== p.product_id) { productSheets = []; drwReset(p.product_id); }
+  loadSheets(p.product_id); pollDrawings(p.product_id);
+  updateDrwBtns();
+  $('#hudEyebrow').textContent = `${p.product_id} · rev ${p.revision ?? '—'}`;
+  $('#hudName').textContent = p.name || p.product_id;
+  const dl = $('#dl'); dl.href = '/api/step/' + encodeURIComponent(p.product_id); dl.className = 'on';
+  dl.setAttribute('download', `${p.product_id}-rev${p.revision ?? 'A'}.step`);
+  const pid = encodeURIComponent(p.product_id);
+  [['#dlGlb', `/api/glb/${pid}`, `${p.product_id}-rev${p.revision ?? 'A'}.glb`], ['#dlCsv', `/api/bom/${pid}?format=csv`, `${p.product_id}-bom.csv`],
+   ['#dlJson', `/api/bom/${pid}?format=json`, `${p.product_id}-bom.json`]].forEach(([s, href, name]) => { const a = $(s); a.href = href; a.setAttribute('download', name); a.className = 'hb on'; });
+  $('#tbProduct').textContent = p.product_id; $('#tbRev').textContent = p.revision ?? '—';
+  /* identical parts are one row (bom_groups): qty and common name; a click selects every member */
+  const groups = Array.isArray(p.bom_groups) && p.bom_groups.length ? p.bom_groups : null;
+  $('#tbCounts').textContent = `${groups ? groups.length : p.bom.length} / ${p.interfaces.length}`;
+  const swatch = ref => { const col = legend[ref]; return col != null ? `<span class="sw" style="background:#${col.toString(16).padStart(6, '0')}"></span>` : ''; };
+  const rows = groups ? groups.map(g => {
+    const refs = (g.refs && g.refs.length ? g.refs : [g.ref]).map(String), first = refs[0];
+    return `<tr data-ref="${esc(first)}" data-refs="${esc(refs.join(' '))}"><td>${swatch(first)}${esc(g.name || first)}</td><td class="lbl">${refs.length > 1 ? '' : esc(g.label ?? '')}</td><td class="num">×${g.qty}</td><td class="num">${Math.round(g.volume_mm3 ?? 0).toLocaleString()} mm³</td></tr>`;
+  }).join('') : p.bom.map(b => {
+    return `<tr data-ref="${esc(b.ref)}"><td>${swatch(b.ref)}${esc(b.ref)}</td><td class="lbl">${esc(b.label ?? '')}</td><td class="num">×${b.qty}</td><td class="num">${Math.round(b.volume_mm3 ?? 0).toLocaleString()} mm³</td></tr>`;
+  }).join('');
+  const ifs = p.interfaces.map(i => i.kind === 'cylindrical_fit'
+    ? `<b>${i.ref_a}</b> Ø${i.nominal_a_mm} in <b>${i.ref_b}</b> Ø${i.nominal_b_mm} · clearance ${i.clearance_mm > 0 ? '+' : ''}${i.clearance_mm} mm`
+    : `<b>${i.ref_a}</b> face on <b>${i.ref_b}</b> · gap ${i.clearance_mm} mm`).join('<br>');
+  $('#bom').innerHTML = `<h3><button type="button" class="fold" data-fold="bom" aria-expanded="${!folded.bom}" title="${folded.bom ? 'Open' : 'Fold'} the parts list">Parts list</button></h3><table>${rows}</table>` + (ifs ? `<div class="ifs">${ifs}</div>` : '');
+  $('#bom').style.display = 'block';
+  $('#bom').querySelectorAll('tr[data-ref]').forEach(tr => tr.addEventListener('click', e => {
+    const add = (e.ctrlKey || e.metaKey || e.shiftKey);
+    if (tr.dataset.refs) pickGroup(tr.dataset.refs.split(' '), add); else pick(tr.dataset.ref, add);
+  }));
+  shownProduct = p; selectPart(null);
+}
+
+/* ---------- pick a part: click it in the view or in the parts list ---------- */
+let selected = null, shownProduct = null, picked = new Set();
+const ray = new THREE.Raycaster(), ptr = new THREE.Vector2(); let downAt = null;
+renderer.domElement.addEventListener('pointerdown', e => { downAt = [e.clientX, e.clientY]; });
+renderer.domElement.addEventListener('pointerup', e => {
+  if (!downAt || !model) return;
+  const moved = Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]); downAt = null;
+  if (moved > 4) return;                                  // it was an orbit drag, not a click
+  const hit = hitAt(e), addTo = (e.ctrlKey || e.metaKey || e.shiftKey);
+  if (hit) pick(hit.object.name, addTo); else if (!addTo) pick(null);
+});
+function hitAt(e) {
+  const r = renderer.domElement.getBoundingClientRect();
+  ptr.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+  ray.setFromCamera(ptr, camera);
+  return ray.intersectObject(model, true).find(h => h.object.isMesh && h.object.visible && h.object.name);   // unnamed = feature overlay
+}
+/* double-click a part: select it and frame it from where you look now; empty space: fit everything */
+renderer.domElement.addEventListener('dblclick', e => {
+  if (!model) return;
+  const hit = hitAt(e);
+  if (!hit) { fitAll(); return; }
+  const ref = hit.object.name, box = new THREE.Box3();
+  partObjects(ref).forEach(o => { if (o.isMesh) box.expandByObject(o); });
+  picked = new Set([ref]); selectPart(null, true); frameBox(box, null, true);
+});
+function multiCard(card) {
+  const fmt = (v, d = 0) => v == null ? '—' : Number(v).toLocaleString(undefined, { maximumFractionDigits: d });
+  const refs = [...picked], bom = shownProduct.bom || [];
+  const rows = refs.map(r => bom.find(x => x.ref === r) || { ref: r });
+  const total = rows.reduce((t, b) => t + (b.volume_mm3 || 0) * (b.qty || 1), 0);
+  const between = (shownProduct.interfaces || []).filter(i => picked.has(i.ref_a) && picked.has(i.ref_b));
+  const ifs = between.map(i => i.kind === 'cylindrical_fit'
+    ? `<tr><td>${esc(i.ref_a)} Ø${fmt(i.nominal_a_mm, 3)} in ${esc(i.ref_b)} Ø${fmt(i.nominal_b_mm, 3)}</td><td class="n">${i.clearance_mm > 0 ? '+' : ''}${fmt(i.clearance_mm, 3)}</td></tr>`
+    : `<tr><td>${esc(i.ref_a)} face on ${esc(i.ref_b)}</td><td class="n">gap ${fmt(i.clearance_mm, 3)}</td></tr>`).join('');
+  card.innerHTML = `<div class="ph"><div><div class="pr">${refs.length} parts selected</div><div class="pl">Ctrl+click to add or remove · click a row to focus it</div></div><button class="px" type="button" title="Clear selection (Esc)">✕</button></div>
+    <table>${rows.map(b => `<tr data-ref="${esc(b.ref)}" style="cursor:pointer"><td>${esc(b.ref)}</td><td>${esc(b.family || '')}</td><td class="n">${fmt(b.volume_mm3)} mm³</td></tr>`).join('')}</table>
+    <dl><dt>Total volume</dt><dd>${fmt(total)} mm³</dd><dt>Fits and contacts between them</dt><dd>${between.length}</dd></dl>
+    ${ifs ? `<h4>Between the selected parts (mm)</h4><table>${ifs}</table>` : `<div class="note">No fit or contact was measured between these parts.</div>`}`;
+  card.className = 'on';
+  card.querySelector('.px').addEventListener('click', () => pick(null));
+  card.querySelectorAll('tr[data-ref]').forEach(tr => tr.addEventListener('click', () => pick(tr.dataset.ref, false)));
+}
+/* plain click = only this part (again = clear); Ctrl/Shift+click = add or remove */
+function pick(ref, add) {
+  if (!ref) picked = new Set();
+  else if (add) { if (picked.has(ref)) picked.delete(ref); else picked.add(ref); }
+  else picked = (picked.size === 1 && picked.has(ref)) ? new Set() : new Set([ref]);
+  selectPart(null, true);
+}
+/* a parts-list group: plain click = only its members (again = clear); Ctrl/Shift+click = add or remove them all */
+function pickGroup(refs, add) {
+  const all = refs.length && refs.every(r => picked.has(r));
+  if (add) { if (all) refs.forEach(r => picked.delete(r)); else refs.forEach(r => picked.add(r)); }
+  else picked = (all && picked.size === refs.length) ? new Set() : new Set(refs);
+  selectPart(null, true);
+}
+/* a bore or diameter drawn where it is: translucent sleeve + end rings that stay visible through the part */
+let featureFx = null;
+function showFeature(g) {
+  if (featureFx) { featureFx.parent && featureFx.parent.remove(featureFx); featureFx.traverse(o => { o.geometry && o.geometry.dispose(); }); featureFx = null; }
+  if (model) model.traverse(o => { if (o.isMesh && o.name === selected) { o.material.transparent = !!g; o.material.opacity = g ? 0.45 : 1; o.material.depthWrite = !g; o.material.needsUpdate = true; } });
+  if (!g || !model) return;
+  featureFx = new THREE.Group(); featureFx.renderOrder = 10;
+  const col = g.role === 'bore' ? 0xD9A441 : 0x7FB3FF, r = g.dia_mm / 2;
+  const sleeveMat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.35, side: THREE.DoubleSide, depthWrite: false });
+  const ringMat = new THREE.LineBasicMaterial({ color: col, depthTest: false, transparent: true });
+  for (const w of g.where || []) {
+    const a = new THREE.Vector3(...w.axis).normalize(), p0 = new THREE.Vector3(...w.pos), b = w.bbox;
+    const mid = new THREE.Vector3((b[0] + b[1]) / 2, (b[2] + b[3]) / 2, (b[4] + b[5]) / 2);
+    const c = p0.clone().add(a.clone().multiplyScalar(mid.clone().sub(p0).dot(a)));   // centre on the axis
+    const len = Math.max(w.length_mm || 0, 0.5);
+    const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), a);
+    const sleeve = new THREE.Mesh(new THREE.CylinderGeometry(r * 1.01, r * 1.01, len, 48, 1, true), sleeveMat);
+    sleeve.position.copy(c); sleeve.quaternion.copy(q); featureFx.add(sleeve);
+    for (const s of [-1, 1]) {
+      const pts = []; for (let k = 0; k <= 64; k++) { const t = k / 64 * Math.PI * 2; pts.push(new THREE.Vector3(Math.cos(t) * r * 1.02, s * len / 2, Math.sin(t) * r * 1.02)); }
+      const ring = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), ringMat);
+      ring.position.copy(c); ring.quaternion.copy(q); ring.renderOrder = 11; featureFx.add(ring);
+    }
+  }
+  model.add(featureFx);     // child of the model: same frame and rotation as the part
+}
+function selectPart(ref, keep) {
+  showFeature(null);
+  if (!keep) picked = ref ? new Set([ref]) : new Set();
+  selected = picked.size === 1 ? [...picked][0] : null;
+  if (model) model.traverse(o => { if (!o.isMesh) return;
+    const on = !picked.size || picked.has(o.name), m = o.material, b = o.userData.op || [false, 1];   // op: see-through as it came
+    m.transparent = !on || b[0]; m.opacity = on ? b[1] : Math.min(0.12, b[1]); m.depthWrite = on && !b[0];
+    m.emissive = new THREE.Color(picked.has(o.name) ? 0x1d3f7a : 0x000000);
+    m.needsUpdate = true; });
+  if (model) model.traverse(o => { if (!o.userData || !o.userData.edgesOf) return;
+    o.material.opacity = (!picked.size || picked.has(o.userData.edgesOf)) ? EDGE_OPACITY : 0.05; });
+  $('#bom').querySelectorAll('tr[data-ref]').forEach(tr => tr.classList.toggle('sel', (tr.dataset.refs ? tr.dataset.refs.split(' ') : [tr.dataset.ref]).some(r => picked.has(r))));
+  const card = $('#partCard');
+  if (picked.size > 1 && shownProduct) { multiCard(card); return; }
+  if (!selected || !shownProduct) { card.className = ''; card.innerHTML = ''; return; }
+  const b = (shownProduct.bom || []).find(x => x.ref === selected) || { ref: selected };
+  const fmt = (v, d = 0) => v == null ? '—' : Number(v).toLocaleString(undefined, { maximumFractionDigits: d });
+  const head = `<div class="ph"><div><div class="pr">${esc(selected)}</div><div class="pl">${esc(b.label || '')}</div><div class="pl">Ctrl+click another part to add it</div></div><button class="px" type="button" title="Clear selection (Esc)">✕</button></div>`;
+  const base = (p) => `<dl><dt>Family</dt><dd>${esc(p.family || '—')}</dd><dt>Quantity</dt><dd>×${p.same_n > 1 ? p.same_n + ' in this design' : (p.qty ?? 1)}</dd>
+    <dt>Volume</dt><dd>${fmt(p.volume_mm3)} mm³</dd>${p.area_mm2 != null ? `<dt>Surface</dt><dd>${fmt(p.area_mm2)} mm²</dd>` : ''}
+    <dt>Envelope</dt>${(() => { const orig = (p.bbox_mm || [b.bbox_a_mm, b.bbox_b_mm, b.bbox_c_mm]).map(x => fmt(x, 1)).join(' × ') + ' mm', ex = exactEnvelope(selected);
+      return `<dd class="env" data-ref="${esc(selected)}" data-orig="${esc(orig)}"${ex ? ' title="Measured from the model"' : ''}>${ex ? ex.map(x => Number(x).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })).join(' × ') + ' mm' : esc(orig)}</dd>`; })()}
+    ${p.faces != null ? `<dt>Faces</dt><dd>${p.faces}</dd>` : ''}</dl>`;
+  card.innerHTML = head + base(b); card.className = 'on';
+  card.querySelector('.px').addEventListener('click', () => selectPart(null));
+  const want = selected;
+  fetch(`/api/part/${encodeURIComponent(shownProduct.product_id)}/${encodeURIComponent(want)}`).then(r => r.ok ? r.json() : null).then(p => {
+    if (!p || selected !== want) return;
+    const rows = p.cylinders.slice(0, 14).map((c, i) => `<tr class="feat" data-i="${i}" title="Show on the design"><td>${c.role === 'bore' ? 'Bore' : c.role === 'od' ? 'Diameter' : 'Cylinder'}</td><td class="n">Ø${fmt(c.dia_mm, 2)}</td><td class="n">${c.count > 1 ? '×' + c.count : ''}</td><td class="n">${c.length_mm ? fmt(c.length_mm, 1) + ' long' : ''}</td></tr>`).join('');
+    const more = p.cylinders.length > 14 ? `${p.cylinders.length - 14} more sizes. ` : '';
+    card.innerHTML = head + base(p) + (rows ? `<h4>Bores and diameters (mm)</h4><table>${rows}</table>` : '') +
+      `<div class="note">${more}${p.planes} flat faces, ${p.cones} tapers${p.blends_omitted ? `, ${p.blends_omitted} large blends not listed` : ''}. Click a size to see it on the design.</div>`;
+    card.querySelector('.px').addEventListener('click', () => selectPart(null));
+    card.querySelectorAll('tr.feat').forEach(tr => tr.addEventListener('click', () => {
+      const on = !tr.classList.contains('lit');
+      card.querySelectorAll('tr.feat').forEach(x => x.classList.remove('lit'));
+      showFeature(on ? p.cylinders[+tr.dataset.i] : null); if (on) tr.classList.add('lit');
+    }));
+  }).catch(() => {});
+}
+async function renderProduct(id, meshUrl) {
+  const p = await (await fetch('/api/product/' + id)).json();
+  sameGroup = {}; (p.bom || []).forEach(b => { if (b.same !== undefined) sameGroup[b.ref] = b.same; });
+  if (p.error) return;
+  let url = meshUrl || p.mesh_url;
+  if (!url) {          // the 3D view is made by the engines service: show the sheet's overlay while it runs
+    const em = $('#empty'), mine = renderProduct.seq = (renderProduct.seq || 0) + 1;
+    em.textContent = 'Preparing 3D view…'; em.style.display = '';
+    try { const r = await (await fetch('/api/mesh/' + id, { method: 'POST' })).json(); url = r.mesh_url; } catch (e) { url = null; }
+    if (mine !== renderProduct.seq) return;           // another design was opened meanwhile
+    if (!url) em.textContent = 'The 3D view could not be prepared.';
+  }
+  if (url) {
+    current = id; remember(); markActive(); await showMesh(url, p);
+  }
+}
+
+/* ---------- the meshes and edges of one part ---------- */
+function partObjects(ref) {
+  const out = []; if (!model) return out;
+  model.traverse(o => { if ((o.isMesh && o.name === ref) || (o.userData && o.userData.edgesOf === ref)) out.push(o); });
+  return out;
+}
+
+/* ---------- portfolio ---------- */
+const portList = $('#portList');
+function markActive() {
+  portList.querySelectorAll('.prod').forEach(b => b.classList.toggle('active', b.dataset.id === current));
+}
+let prodList = [];
+const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+async function loadPortfolio() {
+  const p = await fetch('/api/products').then(r => r.json()).catch(() => []);
+  prodList = Array.isArray(p) ? p : [];
+  renderPortList(); loadTrash();
+  if (searchOn()) runSearch();              // a product may have been hidden or changed
+  for (const x of prodList)                 // mechanical drawings per product, filled in as they answer
+    fetch('/api/drawings/' + encodeURIComponent(x.product_id)).then(r => r.ok ? r.json() : null).then(d => {
+      const n = Array.isArray(d) ? d.length : 0, s = portList.querySelector(`.pdw[data-dw="${CSS.escape(x.product_id)}"]`);
+      if (s) s.textContent = n ? ' · ' + plural(n, 'drawing') + (d.some(e => e && e.stale) ? ' (out of date)' : '') : '';
+    }).catch(() => {});
+}
+function renderPortList() {
+  const list = prodList;
+  $('#portCount').textContent = list.length ? plural(list.length, 'product') : 'empty';
+  if (searchOn()) return;                   // the search results stay while the box has text
+  portList.innerHTML = '';
+  if (!list.length) {
+    portList.innerHTML = '<div id="portEmpty">No designs yet. Use Open assembly or Add part to start.</div>';
+    return;
+  }
+  for (const p of list) {
+    const row = document.createElement('div'); row.className = 'prow';
+    const b = document.createElement('button'); b.type = 'button';
+    const id = p.product_id, name = p.name || id;
+    b.dataset.id = id;
+    b.className = 'prod';
+    b.innerHTML = `<span class="pn">${esc(p.name)}</span><span class="pm">rev ${esc(p.revision ?? '—')} · ${p.parts} parts · ${p.interfaces} interfaces<span class="pdw" data-dw="${esc(id).replace(/"/g, '&quot;')}"></span></span>` +
+                  (p.description ? `<span class="pd">${esc(p.description)}</span>` : '');
+    b.title = p.description || p.name;
+    b.addEventListener('click', () => openProduct(p.product_id, p.name));
+    const del = document.createElement('button'); del.type = 'button'; del.className = 'del'; del.textContent = '✕';
+    del.title = 'Remove from the portfolio'; del.setAttribute('aria-label', 'Remove ' + name + ' from the portfolio');
+    del.addEventListener('click', () => askRemove(row, id, name, true));
+    row.append(b, del); portList.appendChild(row);
+  }
+  markActive();
+}
+
+/* ---------- search box above the portfolio: plain phrases or raw JSON -> /api/query ---------- */
+const catBox = $('#catSearch');
+/* the phrase reading is shared with the catalogue page (static/catphrase.js, loaded before this script) */
+const { SEARCH_HINT, parsePhrase } = window.CatPhrase;
+const searchOn = () => !!catBox.value.trim();
+let searchT = 0, searchAbort = null, searchSeq = 0;
+function searchRows(data, role, shape) {
+  const out = [];
+  for (const g of data.groups || []) {
+    const seen = new Map();
+    for (const p of g.parts || []) {
+      const label = p.label || p['part.label'] || p.ref_des || '';
+      const d = p['feat.diameter'], s = shape && typeof p.score === 'number' ? p.score : null;
+      const key = label + '|' + (typeof d === 'number' ? d : '') + '|' + (s === null ? '' : s);
+      const e = seen.get(key) || { label, d, s, n: 0 }; e.n++; seen.set(key, e);
+    }
+    const items = [...seen.values()].map(e => e.label + (role && typeof e.d === 'number' ? ' (' + role + ' ' + e.d.toFixed(3) + ' mm)' : '') + (e.s !== null ? ' (shape distance ' + e.s.toFixed(4) + ')' : '') + (e.n > 1 ? ' ×' + e.n : ''));
+    const shown = items.slice(0, 6).join(', ') + (items.length > 6 ? ' and ' + (items.length - 6) + ' more' : '');
+    out.push({ id: g.product_id, name: g.name || g.product_id, rev: g.revision, parts: shown });
+  }
+  return out;
+}
+const mergeNames = (parsed, rows) => window.CatPhrase.mergeNames(parsed, rows, prodList);   // the portfolio list already loaded
+function showSearch(rows, line, hint) {
+  portList.innerHTML = '';
+  if (hint) { const h = document.createElement('div'); h.className = 'shint'; h.textContent = hint; portList.appendChild(h); }
+  for (const r of rows) {
+    const row = document.createElement('div'); row.className = 'prow';
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'prod hit'; b.dataset.id = r.id;
+    b.innerHTML = `<span class="pn">${esc(r.name)}</span><span class="pm">rev ${esc(r.rev ?? '—')}${r.parts ? ' · ' + esc(r.parts) : ''}</span>`;
+    b.title = r.name;
+    b.addEventListener('click', () => openProduct(r.id, r.name));
+    row.appendChild(b); portList.appendChild(row);
+  }
+  if (line) { const c = document.createElement('div'); c.className = 'scov'; c.textContent = line; portList.appendChild(c); }
+  markActive();
+}
+async function runSearch() {
+  clearTimeout(searchT);
+  if (!searchOn()) { endSearch(); return; }
+  const parsed = parsePhrase(catBox.value), mine = ++searchSeq;
+  if (searchAbort) searchAbort.abort();
+  if (parsed.hint) { showSearch([], '', parsed.hint); return; }
+  searchAbort = new AbortController();
+  try {
+    const r = await fetch('/api/query', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(parsed.request), signal: searchAbort.signal });
+    const data = await r.json().catch(() => ({}));
+    if (mine !== searchSeq) return;
+    const named = mergeNames(parsed, []);   // plain words: the product names already loaded still answer
+    if (r.status === 400) { showSearch(named, '', named.length ? '' : SEARCH_HINT); return; }
+    if (!r.ok || data.error) { showSearch(named, '', named.length ? '' : 'No search right now'); return; }
+    if (data.note && !(data.groups || data.results || []).length) { showSearch([], data.note); return; }   // e.g. a part with no shape measurement
+    if (!data.groups) {                     // a raw request for another kind of answer: one line per id
+      const ids = (data.results || []).map(x => { const id = x.id || x.part_id || x.feature_id; return { id, name: id, rev: null, parts: '' }; });
+      showSearch(ids.filter(x => x.id), ids.length ? data.text : 'No match. ' + (data.text || ''));
+      return;
+    }
+    const rows = mergeNames(parsed, searchRows(data, parsed.role, parsed.shape));
+    if (!rows.length && (parsed.words || parsed.nameWords)) {     // name the word nothing is called, in one sentence
+      const probe = async w => prodList.some(p => (p.name || p.product_id || '').toLowerCase().includes(w)) || await fetch('/api/query', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: searchAbort.signal,
+        body: JSON.stringify({ find: 'part', where: { 'part.label': { like: w } }, group_by: 'product', limit: 1 }) })
+        .then(x => x.json()).then(x => (x.groups || []).length > 0);
+      const why = await window.CatPhrase.explainNoMatch(parsed.words || parsed.nameWords, probe, !!parsed.words);
+      if (mine !== searchSeq) return;
+      showSearch([], 'No match. ' + data.text, why || (parsed.words ? SEARCH_HINT : ''));
+      return;
+    }
+    showSearch(rows, rows.length ? data.text : 'No match. ' + data.text, '');
+  } catch (e) {
+    if (e.name === 'AbortError' || mine !== searchSeq) return;
+    showSearch([], '', 'No search right now');
+  }
+}
+function endSearch() {
+  clearTimeout(searchT); searchSeq++; if (searchAbort) searchAbort.abort();
+  renderPortList();
+}
+catBox.addEventListener('input', () => { clearTimeout(searchT); if (!searchOn()) endSearch(); else searchT = setTimeout(runSearch, 300); });
+catBox.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); runSearch(); }
+  else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); catBox.value = ''; endSearch(); }
+});
+
+/* ---------- remove, undo, recently deleted: every confirm is in the page, never a browser dialog ---------- */
+function confirmBox(where, html, okText, onOk, after) {
+  document.querySelectorAll('.cfm').forEach(x => x.remove());           // one question at a time
+  const d = document.createElement('div'); d.className = 'cfm'; d.setAttribute('role', 'alertdialog');
+  d.innerHTML = `<span>${html}</span><span class="cb"><button type="button" class="tbtn bad">${okText}</button><button type="button" class="tbtn">Cancel</button></span><span class="ce"></span>`;
+  const [ok, no] = d.querySelectorAll('button');
+  no.addEventListener('click', () => d.remove());
+  ok.addEventListener('click', async () => {
+    ok.disabled = no.disabled = true;
+    try { await onOk(); d.remove(); } catch (err) { d.querySelector('.ce').textContent = 'Could not do that: ' + err.message + '.'; ok.disabled = no.disabled = false; }
+  });
+  d.addEventListener('keydown', e => { if (e.key === 'Escape') { e.stopPropagation(); d.remove(); } });
+  if (after) where.after(d); else where.appendChild(d);
+  no.focus();
+}
+function askRemove(where, id, name, after) {
+  confirmBox(where, `Remove <b>${esc(name)}</b> from the portfolio?`, 'Remove', () => removeItem(id, name), after);
+}
+async function apiError(r, fallback) {
+  let j = {}; try { j = await r.json(); } catch (e) {}
+  if (r.status === 405 || (r.status === 404 && j.detail === 'Not Found')) return new Error('this server cannot do that yet');
+  return new Error(j.error || (typeof j.detail === 'string' ? j.detail : '') || fallback);
+}
+async function removeItem(id, name) {
+  const r = await fetch('/api/product/' + encodeURIComponent(id), { method: 'DELETE' });
+  if (!r.ok) throw await apiError(r, 'the server refused');
+  let j = {}; try { j = await r.json(); } catch (e) {}
+  if (current === id) { clearView(); current = null; remember(); }
+  const tk = j.kind || 'mechanical';
+  toast(`Removed ${name} from the portfolio.`, 'Undo', () => restoreItem(tk, id, name));
+  loadPortfolio();
+}
+async function restoreItem(kind, id, name) {
+  const r = await fetch(`/api/trash/${encodeURIComponent(kind)}/${encodeURIComponent(id)}/restore`, { method: 'POST' });
+  if (!r.ok) throw await apiError(r, 'the server refused');
+  toast(`${name} is back in the portfolio.`); loadPortfolio();
+}
+let toastT = 0;
+function toast(text, action, fn, ms) {
+  const t = $('#toast');
+  t.innerHTML = `<span>${esc(text)}</span>` + (action ? `<button type="button" class="tbtn">${esc(action)}</button>` : '');
+  t.className = 'on'; clearTimeout(toastT); toastT = setTimeout(() => { t.className = ''; }, ms || (action ? 8000 : 3500));
+  if (action) t.querySelector('button').addEventListener('click', async () => {
+    clearTimeout(toastT); t.className = '';
+    try { await fn(); } catch (err) { toast('Could not undo: ' + err.message + '.'); }
+  });
+}
+let trashItems = [], trashOpen = false;
+async function loadTrash() {
+  let l = null; try { const r = await fetch('/api/trash', { cache: 'no-store' }); if (r.ok) l = await r.json(); } catch (e) {}
+  trashItems = Array.isArray(l) ? l : (l && Array.isArray(l.items) ? l.items : []);
+  renderTrash();
+}
+const whenMs = t => typeof t === 'number' ? (t < 1e12 ? t * 1000 : t) : Date.parse(t);
+function renderTrash() {
+  const box = $('#trash');
+  if (!trashItems.length) { box.className = ''; box.innerHTML = ''; trashOpen = false; return; }
+  box.className = 'on';
+  box.innerHTML = `<button type="button" class="th" aria-expanded="${trashOpen}">${trashOpen ? '▾' : '▸'} Recently deleted (${trashItems.length})</button>` +
+    (trashOpen ? trashItems.map((t, i) => {
+      const at = whenMs(t.deleted_at), a = isFinite(at) ? ago(at) : null;
+      return `<div class="ti" data-i="${i}"><span class="tn">${esc(t.name || t.id)}</span><span class="tk">${a ? 'Removed ' + (a === 'now' ? 'just now' : a + ' ago') : ''}</span>
+        <span class="ta"><button type="button" class="tbtn" data-a="restore">Restore</button>${t.removable ? '<button type="button" class="tbtn bad" data-a="purge">Delete permanently</button>'
+          : '<span class="tnote">Reference design · can be restored anytime</span>'}</span></div>`;
+    }).join('') : '');
+  box.querySelector('.th').addEventListener('click', () => { trashOpen = !trashOpen; renderTrash(); });
+  box.querySelectorAll('.ti').forEach(row => {
+    const t = trashItems[+row.dataset.i], name = t.name || t.id;
+    row.querySelector('[data-a=restore]').addEventListener('click', async e => {
+      e.target.disabled = true;
+      try { await restoreItem(t.kind, t.id, name); } catch (err) { e.target.disabled = false; toast('Could not restore ' + name + ': ' + err.message + '.'); }
+    });
+    const pg = row.querySelector('[data-a=purge]');
+    if (pg) pg.addEventListener('click', () => confirmBox(row, `Delete <b>${esc(name)}</b> for good? This cannot be undone.`, 'Delete', async () => {
+      const r = await fetch(`/api/trash/${encodeURIComponent(t.kind)}/${encodeURIComponent(t.id)}`, { method: 'DELETE' });
+      if (!r.ok) throw await apiError(r, 'the server refused');
+      toast(`${name} was deleted for good.`); loadTrash();
+    }));
+  });
+}
+$('#rmBtn').addEventListener('click', () => {         // the question sits right under the button
+  if (shownProduct) askRemove($('#rmBtn'), shownProduct.product_id, shownProduct.name || shownProduct.product_id, true);
+});
+
+async function openProduct(id, name) {
+  try { await renderProduct(id); } catch (e) { toast('Could not open ' + (name || id) + ': ' + e.message); }
+}
+
+/* escape all five characters, so a value is safe inside an attribute too */
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const hasFiles = e => e.dataTransfer && [...(e.dataTransfer.types || [])].includes('Files');
+document.addEventListener('dragover', e => { if (hasFiles(e)) e.preventDefault(); });     // a missed drop must not navigate away
+document.addEventListener('drop', e => { if (hasFiles(e)) e.preventDefault(); });
+
+/* ---------- live refresh: anything changed anywhere -> update ---------- */
+let stateVersion = null, productSigs = {};
+async function pollState() {
+  let s; try { s = await (await fetch('/api/state', { cache: 'no-store' })).json(); } catch (e) { return; }
+  if (stateVersion === null) { stateVersion = s.version; productSigs = s.products; return; }
+  if (s.version === stateVersion) return;
+  const mine = current && productSigs[current] !== s.products[current];
+  stateVersion = s.version; productSigs = s.products;
+  loadPortfolio();
+  if (mine) renderProduct(current).catch(() => {});
+}
+setInterval(() => pollState(), 8000);
+
+/* the title block's names come from the server (BUILDCORE_DRAWN_BY / BUILDCORE_CHECKED_BY); blank when unset or unreachable */
+fetch('/api/title-block', { cache: 'no-store' }).then(r => r.ok ? r.json() : {}).then(t => {
+  $('#tbDrawn').textContent = typeof t.drawn_by === 'string' ? t.drawn_by : '';
+  $('#tbChecked').textContent = typeof t.checked_by === 'string' ? t.checked_by : '';
+}).catch(() => {});
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (drwOpen()) { closeDrawing(); return; }          // Esc leaves the drawing first; the 3D view is as it was
+  if (picked.size) { pick(null); return; }
+});
+/* view keys: never while typing (inputs, selects) */
+const typing = e => { const t = e.target; return !!t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)); };
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey || e.altKey || typing(e) || drwOpen() || !model) return;
+  const act = { f: fitAll, '1': () => viewFrom('front'), '3': () => viewFrom('right'), '7': () => viewFrom('top'), '0': () => viewFrom('iso'),
+    '+': () => zoomBy(1.4), '=': () => zoomBy(1.4), '-': () => zoomBy(1 / 1.4), p: toggleProjection }[e.key.toLowerCase()];
+  if (act) { e.preventDefault(); act(); }
+});
+renderer.domElement.addEventListener('pointerdown', () => { const a = document.activeElement; if (a && typing({ target: a })) a.blur(); });   // so the view keys work after a click on the design
+/* the hud downloads: fetch the file, then save it under the anchor's name */
+function fetchDownload(anchor, idleText, what) {
+  anchor.addEventListener('click', async e => {
+    e.preventDefault();
+    const dl = anchor, t = idleText, name = dl.getAttribute('download');
+    dl.classList.add('busy'); dl.textContent = 'Preparing download…';
+    try {
+      const r = await fetch(dl.href, { cache: 'no-store' });
+      if (r.status === 404) {                  // a normal answer ("no such product": the design is gone) carries its error
+        const j = await r.json().catch(() => null);
+        throw new Error(j && typeof j.error === 'string' && j.error ? j.error : 'the server needs a restart to enable downloads');
+      }
+      if (r.status === 405) throw new Error('the server needs a restart to enable downloads');
+      if (!r.ok) throw new Error('export failed');
+      const url = URL.createObjectURL(await r.blob());
+      const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    } catch (err) { toast('Could not download the ' + what + ': ' + err.message + '.'); }
+    dl.classList.remove('busy'); dl.textContent = t;
+  });
+}
+fetchDownload($('#dl'), 'Download STEP', 'STEP file');
+fetchDownload($('#dlGlb'), 'GLB', 'GLB model');
+fetchDownload($('#dlCsv'), 'BOM CSV', 'BOM (CSV)');
+fetchDownload($('#dlJson'), 'BOM JSON', 'BOM (JSON)');
+
+/* ---------- add a design from STEP files ---------- */
+const upJob = $('#upJob'), upLabel = $('#upLabel'), addStep = $('#addStep'), addPart = $('#addPart'), partMat = $('#partMat');
+addStep.addEventListener('click', () => $('#stepFile').click());
+$('#stepFile').addEventListener('change', e => { const f = [...e.target.files]; e.target.value = ''; if (f.length) routeAddedFiles(f); });
+/* "Add part to catalogue": one file, one solid; the material picker overrides the file's material */
+addPart.addEventListener('click', () => $('#partFile').click());
+$('#partFile').addEventListener('change', e => { const f = [...e.target.files]; e.target.value = '';
+  if (f.length) uploadSteps([f[0]], { single_part: true, material: partMat.value || null }); });
+fetch('/api/catalogue/materials').then(r => r.ok ? r.json() : null).then(j => {
+  (j && Array.isArray(j.materials) ? j.materials : []).forEach(m => { const o = document.createElement('option'); o.value = String(m); o.textContent = String(m); partMat.appendChild(o); });
+}).catch(() => {});
+const portEl = $('#portfolio');
+portEl.addEventListener('dragover', e => { e.preventDefault(); portEl.classList.add('drop'); });
+portEl.addEventListener('dragleave', () => portEl.classList.remove('drop'));
+portEl.addEventListener('drop', e => { e.preventDefault(); portEl.classList.remove('drop'); routeAddedFiles([...e.dataTransfer.files]); });
+/* the button and a drop share this one path: the STEP files among them become one new design */
+async function routeAddedFiles(files) {
+  const step = files.filter(f => /\.(step|stp)$/i.test(f.name));
+  if (step.length) await uploadSteps(step);
+}
+function upState(label, state) { upJob.className = 'on' + (state ? ' ' + state : ''); upLabel.textContent = label; }
+async function uploadSteps(files, opts = {}) {
+  addStep.disabled = true; addPart.disabled = true;
+  try {
+    const tokens = [];
+    for (const [i, f] of files.entries()) {
+      upState(`Uploading ${f.name} (${i + 1} of ${files.length})`);
+      const r = await fetch('/api/upload/file?name=' + encodeURIComponent(f.name), { method: 'POST', body: f });
+      if (r.status === 404 || r.status === 405) throw new Error('Adding designs needs a server restart first.');
+      const j = await r.json(); if (!r.ok) throw new Error(j.error || 'upload failed');
+      tokens.push(j.token);
+    }
+    const res = await fetch('/api/upload/build', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tokens, ...(opts.single_part ? { single_part: true, material: opts.material } : {}) }) });
+    const reader = res.body.getReader(), dec = new TextDecoder(); let buf = '', result = null;
+    while (true) {
+      const { value, done } = await reader.read(); if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let i; while ((i = buf.indexOf('\n\n')) >= 0) {
+        const chunk = buf.slice(0, i); buf = buf.slice(i + 2); let ev = 'message', data = '';
+        for (const line of chunk.split('\n')) { if (line.startsWith('event:')) ev = line.slice(6).trim(); else if (line.startsWith('data:')) data += line.slice(5).trim(); }
+        if (!data) continue; const j = JSON.parse(data);
+        if (ev === 'status') upState(j.label, j.state === 'error' ? '' : '');
+        else if (ev === 'done') result = j;
+      }
+    }
+    if (!result || !result.ok) throw new Error((result && result.error) || 'the import stopped');
+    upState(`Added ${result.name}: ${result.parts} part${result.parts === 1 ? '' : 's'}, ${result.interfaces} fits and contacts`, 'done');
+    await loadPortfolio(); pollState();
+    clearView(); await renderProduct(result.product_id, result.mesh_url);      // the new design goes on the sheet
+  } catch (err) { upState(err.message, 'err'); }
+  addStep.disabled = false; addPart.disabled = false;
+}
+
+/* ---------- drawings: a sheet you can zoom into, laid over the 3D view ----------
+   Two layers: a base picture of the whole sheet (at most 2048 px, or a raster image at its own size)
+   that moves with every drag, and a sharp layer of just the visible part, re-drawn at the current zoom
+   a moment after zooming or moving stops. Canvas memory stays bounded at any zoom.               */
+const PDFJS = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/';
+let pdfjs = null;
+async function loadPdfjs() {
+  if (!pdfjs) { const lib = await import(PDFJS + 'build/pdf.min.mjs'); lib.GlobalWorkerOptions.workerSrc = PDFJS + 'build/pdf.worker.min.mjs'; pdfjs = lib; }
+  return pdfjs;
+}
+const drw = $('#drw'), port = $('#drwPort'), miniEl = $('#drwMini'), miniC = miniEl.querySelector('canvas'), miniR = miniEl.querySelector('i');
+const CSSPX = 96 / 72, ZMIN = 0.05, ZMAX = 32;       // a PDF point is 1/72 in; 100% shows it at 96 px per inch
+const D = { url: null, kind: null, doc: null, img: null, svg: false, pg: null, page: 1, pages: 1, rot: 0, W: 1, H: 1, s: 1, x: 0, y: 0, bs: 1,
+  mode: 'page', token: 0, opts: {}, owner: null, btask: null, dtask: null };
+let baseEl = $('#drwBase'), detailC = null, detailAt = null, detailT = 0, miniSrc = null, drwHintT = 0;
+let lastDrawing = null;
+try { lastDrawing = JSON.parse(localStorage.getItem('ds.drawing') || 'null'); } catch (e) { lastDrawing = null; }
+const drwOpen = () => !drw.hidden;
+const drwMsg = t => { $('#drwMsg').textContent = t; };
+const clampZ = s => Math.min(ZMAX, Math.max(ZMIN, s));
+const sheetTitle = (name, s, r) => (name ? name + ' · ' : '') + s.label + (r && r.rev != null ? ' · rev ' + r.rev : '') + (r && r.prev ? ' · previous' : '');
+
+async function openDrawing(url, label, opts) {
+  if (!url) {                                   // reopen the last one, where it was left
+    if (D.url && (D.doc || D.img)) { showDrw(); return; }
+    if (!lastDrawing) return;
+    ({ url, label } = lastDrawing); opts = {};
+  }
+  opts = opts || {};
+  label = label || decodeURIComponent(url.split('/').pop().split('?')[0]);
+  const same = D.url === url && (D.doc || D.img) && opts.owner && opts.owner === D.owner;
+  // A blob: URL is never remembered as "the last drawing" (it would be an invalid reopen target after a reload).
+  D.opts = opts; D.owner = opts.owner || null; D.shown = url;      // D.url follows later; the bar's status line needs the sheet being opened
+  if (!/^blob:/i.test(url)) {
+    lastDrawing = { url, label };
+    try { localStorage.setItem('ds.drawing', JSON.stringify(lastDrawing)); } catch (e) {}
+  }
+  $('#drwTitle').textContent = label; $('#drwTitle').title = label;
+  const dl = $('#drwDl'); dl.href = url; dl.setAttribute('download', decodeURIComponent(url.split('/').pop().split('?')[0]));
+  // (c) the same file, opened in a new tab instead of downloaded, so the browser's own PDF
+  // viewer can zoom it sharply -- shown only for an actual PDF (never for the 3D-view SVGs).
+  const isPdf = /\.pdf(\?|$)/i.test(url), sharp = $('#drwSharp');
+  sharp.hidden = !isPdf; sharp.href = isPdf ? url : '#';
+  drwBar(url); showDrw();
+  if (same) return;                             // the same sheet for the same design: keep zoom and page
+  const tok = ++D.token;
+  if (D.doc) { try { D.doc.destroy(); } catch (e) {} }
+  Object.assign(D, { url, kind: null, doc: null, img: null, pg: null, page: 1, pages: 1, rot: 0, mode: 'page' });
+  baseEl.style.visibility = 'hidden'; dropDetail(); miniEl.classList.remove('on'); drwMsg('Opening the drawing…'); drwPlace();
+  try {
+    if (/\.pdf(\?|$)/i.test(url)) {
+      const lib = await loadPdfjs();
+      const doc = await lib.getDocument({ url, cMapUrl: PDFJS + 'cmaps/', cMapPacked: true, standardFontDataUrl: PDFJS + 'standard_fonts/' }).promise;
+      if (tok !== D.token) { doc.destroy(); return; }
+      Object.assign(D, { doc, pages: doc.numPages, kind: 'pdf' });
+    } else {
+      const img = new Image();
+      await new Promise((ok, no) => { img.onload = ok; img.onerror = () => no(new Error('the file did not load')); img.src = url; });
+      if (tok !== D.token) return;
+      Object.assign(D, { img, kind: 'img', svg: /\.svg(\?|$)/i.test(url) });
+    }
+    await showPage(tok);
+  } catch (err) { if (tok === D.token) drwMsg('Could not open this drawing: ' + ((err && err.message) || 'unknown error') + '.'); }
+}
+function showDrw() {
+  drw.hidden = false; updateDrwBtns();
+  port.focus({ preventScroll: true });             // keys go to the sheet
+  const h = $('#drwHint'); h.classList.add('on'); clearTimeout(drwHintT); drwHintT = setTimeout(() => h.classList.remove('on'), 6000);
+  if (D.doc || D.img) requestAnimationFrame(() => { if (D.mode) fit(D.mode); else setView(D.s, D.x, D.y); });
+}
+function closeDrawing(quiet) {
+  if (drw.hidden) return;
+  drw.hidden = true; document.querySelectorAll('#drw .cfm').forEach(x => x.remove());
+  if (!quiet && D.opts.onClose) D.opts.onClose();
+  updateDrwBtns();
+}
+/* revision and sheet pickers for sheets that belong to a design */
+function drwBar(url) {
+  const o = D.opts, revs = o.revs || [], ri = Math.max(0, revs.findIndex(r => r.sheets.some(s => s.url === url)));
+  const rs = $('#drwRev'), ss = $('#drwSheets'), sheets = revs[ri] ? revs[ri].sheets : [];
+  rs.hidden = revs.length < 2;
+  rs.innerHTML = revs.map((r, i) => `<option value="${i}"${i === ri ? ' selected' : ''}>${r.label ? esc(r.label) : 'Rev ' + esc(r.rev ?? '—')}</option>`).join('');     // "Current (rev A, 3 Oct 17:20)" / "Previous (...)"
+  ss.hidden = sheets.length < 2;
+  // the sheets are grouped Views, Assembly, Parts, Other sheets (a group with one entry stays a plain option)
+  const GL = { studio: 'Views', assembly: 'Assembly', parts: 'Parts', designer: 'Other sheets' };
+  const opt = (s, i) => `<option value="${i}"${s.url === url ? ' selected' : ''}>${esc(s.label)}</option>`;
+  const grouped = sheets.some(s => s.group) && new Set(sheets.map(s => s.group)).size > 1;
+  ss.innerHTML = !grouped ? sheets.map(opt).join('') : Object.keys(GL).map(g => {
+    const mine = sheets.map((s, i) => [s, i]).filter(([s]) => (GL[s.group] ? s.group : 'designer') === g);
+    return mine.length > 1 ? `<optgroup label="${GL[g]}">${mine.map(([s, i]) => opt(s, i)).join('')}</optgroup>` : mine.map(([s, i]) => opt(s, i)).join('');
+  }).join('');
+  drwStudioBar(url);
+}
+$('#drwRev').addEventListener('change', e => {
+  const o = D.opts, r = (o.revs || [])[+e.target.value]; if (!r) return;
+  if (o.onRev) o.onRev(r.rev);
+  const was = (o.revs || []).flatMap(x => x.sheets).find(x => x.url === D.url), pick = (was && r.sheets.find(x => x.label === was.label)) || r.sheets[0];   // the same sheet of the other set when it has one
+  openDrawing(pick.url, sheetTitle(o.name, pick, r), o);
+});
+$('#drwSheets').addEventListener('change', e => {
+  const o = D.opts, r = (o.revs || []).find(x => x.sheets.some(s => s.url === D.url)) || (o.revs || [])[0], s = r && r.sheets[+e.target.value];
+  if (s) openDrawing(s.url, sheetTitle(o.name, s, r), o);
+});
+async function showPage(tok = D.token) {
+  if (D.kind === 'pdf') {
+    const pg = await D.doc.getPage(D.page); if (tok !== D.token) return;
+    D.pg = pg;
+    const vp = pg.getViewport({ scale: CSSPX, rotation: (pg.rotate + D.rot) % 360 }); D.W = vp.width; D.H = vp.height;
+  } else {
+    const w = D.img.naturalWidth || 1200, h = D.img.naturalHeight || 850; [D.W, D.H] = D.rot % 180 ? [h, w] : [w, h];
+  }
+  const raster = D.kind === 'img' && !D.svg;
+  D.bs = Math.min(raster ? 1 : 2048 / Math.max(D.W, D.H), 8192 / Math.max(D.W, D.H), Math.sqrt(24e6 / (D.W * D.H)));
+  const c = document.createElement('canvas'); c.id = 'drwBase';
+  c.width = Math.max(1, Math.round(D.W * D.bs)); c.height = Math.max(1, Math.round(D.H * D.bs));
+  c.style.width = c.width + 'px'; c.style.height = c.height + 'px';
+  try { await paint(c, D.bs, 0, 0, 'btask'); } catch (e) { if (tok === D.token && !/cancel/i.test(e && e.name)) drwMsg('Could not draw this page.'); return; }
+  if (tok !== D.token) return;
+  baseEl.replaceWith(c); baseEl = c; miniSrc = null; dropDetail(); drwMsg('');
+  fit('page');
+}
+/* draw the sheet at S device px per sheet px, its corner at (ox, oy) of the canvas */
+async function paint(c, S, ox, oy, slot) {
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.fillRect(ox, oy, D.W * S, D.H * S);
+  if (D.kind === 'pdf') {
+    if (D[slot]) { try { D[slot].cancel(); } catch (e) {} }
+    const t = D.pg.render({ canvasContext: ctx, viewport: D.pg.getViewport({ scale: S * CSSPX, rotation: (D.pg.rotate + D.rot) % 360 }), transform: [1, 0, 0, 1, ox, oy] });
+    D[slot] = t;
+    try { await t.promise; } finally { if (D[slot] === t) D[slot] = null; }
+  } else {
+    const w = D.img.naturalWidth || 1200, h = D.img.naturalHeight || 850;
+    const [a, b, cc, d, e, f] = { 0: [1, 0, 0, 1, 0, 0], 90: [0, 1, -1, 0, h, 0], 180: [-1, 0, 0, -1, w, h], 270: [0, -1, 1, 0, 0, w] }[D.rot];
+    ctx.setTransform(S * a, S * b, S * cc, S * d, S * e + ox, S * f + oy); ctx.drawImage(D.img, 0, 0, w, h);
+  }
+}
+function dropDetail() { clearTimeout(detailT); if (D.dtask) { try { D.dtask.cancel(); } catch (e) {} } if (detailC) { detailC.remove(); detailC = null; } }
+async function renderDetail() {
+  const dpr = Math.min(devicePixelRatio || 1, 2), S = D.s * dpr;
+  if (!(D.pg || D.svg) || S <= D.bs * 1.05) { dropDetail(); return; }          // the base picture is already sharp enough
+  const pw = port.clientWidth, ph = port.clientHeight; if (!pw || !ph) return;
+  const c = document.createElement('canvas');
+  c.width = Math.round(pw * dpr); c.height = Math.round(ph * dpr); c.style.width = pw + 'px'; c.style.height = ph + 'px';
+  const at = { x: D.x, y: D.y, s: D.s }, tok = D.token, page = D.page, rot = D.rot;
+  try { await paint(c, S, at.x * dpr, at.y * dpr, 'dtask'); } catch (e) { return; }
+  if (tok !== D.token || page !== D.page || rot !== D.rot) return;
+  if (detailC) detailC.remove();
+  detailC = c; detailAt = at; baseEl.after(c); drwPlace();
+}
+function drwPlace() {
+  baseEl.style.transform = `translate(${D.x}px,${D.y}px) scale(${D.s / D.bs})`;
+  baseEl.style.visibility = D.doc || D.img ? '' : 'hidden';
+  if (detailC) { const q = D.s / detailAt.s; detailC.style.transform = `translate(${D.x - detailAt.x * q}px,${D.y - detailAt.y * q}px) scale(${q})`; }
+  $('#drwPct').textContent = Math.round(D.s * 100) + '%';
+  $('#drwPage').textContent = `${D.page} / ${D.pages}`; $('#drwPager').classList.toggle('on', D.pages > 1);
+  $('#drwPager [data-d=prev]').disabled = D.page <= 1; $('#drwPager [data-d=next]').disabled = D.page >= D.pages;
+  drawMini();
+}
+/* the one place the view changes: keeps a margin of the sheet on screen, then asks for a sharp redraw */
+function setView(s, x, y, keepMode) {
+  const pw = port.clientWidth, ph = port.clientHeight, m = 48;
+  s = clampZ(s); const w = D.W * s, h = D.H * s;
+  x = Math.min(pw - m, Math.max(m - w, x)); y = Math.min(ph - m, Math.max(m - h, y));
+  Object.assign(D, { s, x, y }); if (!keepMode) D.mode = null;
+  drwPlace(); clearTimeout(detailT); detailT = setTimeout(renderDetail, 180);
+}
+function zoomAt(px, py, f) { const s = clampZ(D.s * f), k = s / D.s; setView(s, px - (px - D.x) * k, py - (py - D.y) * k); }
+function fit(mode) {
+  const pw = port.clientWidth, ph = port.clientHeight, m = 24; if (!pw || !ph) return;
+  if (mode === 'width') { const s = clampZ((pw - 2 * m) / D.W); setView(s, (pw - D.W * s) / 2, m, true); }
+  else { const s = clampZ(Math.min((pw - 2 * m) / D.W, (ph - 2 * m) / D.H)); setView(s, (pw - D.W * s) / 2, (ph - D.H * s) / 2, true); }
+  D.mode = mode;
+}
+function goPage(d) {
+  const n = D.page + d; if (D.kind !== 'pdf' || n < 1 || n > D.pages) return;
+  D.page = n; drwPlace(); showPage();
+}
+function drawMini() {
+  const pw = port.clientWidth, ph = port.clientHeight, w = D.W * D.s, h = D.H * D.s;
+  const on = !!(D.doc || D.img) && baseEl.width > 1 && (D.x < -1 || D.y < -1 || D.x + w > pw + 1 || D.y + h > ph + 1);
+  miniEl.classList.toggle('on', on); if (!on) return;
+  const k = Math.min(160 / D.W, 120 / D.H), mw = Math.max(1, Math.round(D.W * k)), mh = Math.max(1, Math.round(D.H * k));
+  if (miniSrc !== baseEl || miniC.width !== mw || miniC.height !== mh) { miniC.width = mw; miniC.height = mh; miniC.getContext('2d').drawImage(baseEl, 0, 0, mw, mh); miniSrc = baseEl; }
+  const x0 = Math.max(0, -D.x / D.s), y0 = Math.max(0, -D.y / D.s), x1 = Math.min(D.W, (pw - D.x) / D.s), y1 = Math.min(D.H, (ph - D.y) / D.s);
+  Object.assign(miniR.style, { left: x0 * k + 'px', top: y0 * k + 'px', width: Math.max(2, (x1 - x0) * k) + 'px', height: Math.max(2, (y1 - y0) * k) + 'px' });
+}
+const miniGo = e => { const r = miniC.getBoundingClientRect(), k = miniC.width / D.W;
+  setView(D.s, port.clientWidth / 2 - (e.clientX - r.left) / k * D.s, port.clientHeight / 2 - (e.clientY - r.top) / k * D.s); };
+miniEl.addEventListener('pointerdown', e => { e.preventDefault(); miniEl.setPointerCapture(e.pointerId); miniGo(e); miniEl.onpointermove = miniGo; });
+miniEl.addEventListener('pointerup', () => { miniEl.onpointermove = null; });
+miniEl.addEventListener('pointercancel', () => { miniEl.onpointermove = null; });
+/* mouse, pen and touch: drag (left or middle) moves, two fingers pinch-zoom, wheel zooms where you point */
+const pts = new Map(); let pinch = null;
+const portXY = e => { const r = port.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+function pinchState() {
+  const [a, b] = [...pts.values()], r = port.getBoundingClientRect();
+  return { d: Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, mx: (a[0] + b[0]) / 2 - r.left, my: (a[1] + b[1]) / 2 - r.top };
+}
+port.addEventListener('pointerdown', e => {
+  if (e.pointerType === 'mouse' && e.button !== 0 && e.button !== 1) return;
+  e.preventDefault(); port.focus({ preventScroll: true }); port.setPointerCapture(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]); port.classList.add('grab');
+  pinch = pts.size === 2 ? pinchState() : null;
+});
+port.addEventListener('pointermove', e => {
+  const p = pts.get(e.pointerId); if (!p) return;
+  if (pts.size === 1) setView(D.s, D.x + e.clientX - p[0], D.y + e.clientY - p[1]);
+  pts.set(e.pointerId, [e.clientX, e.clientY]);
+  if (pts.size === 2 && pinch) {
+    const n = pinchState(), s = clampZ(D.s * n.d / pinch.d), k = s / D.s;
+    setView(s, n.mx - (pinch.mx - D.x) * k, n.my - (pinch.my - D.y) * k); pinch = n;
+  }
+});
+const lift = e => { pts.delete(e.pointerId); pinch = pts.size === 2 ? pinchState() : null; if (!pts.size) port.classList.remove('grab'); };
+port.addEventListener('pointerup', lift); port.addEventListener('pointercancel', lift);
+port.addEventListener('wheel', e => {
+  e.preventDefault(); if (!(D.doc || D.img)) return;
+  const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * 400 : e.deltaY;
+  const [x, y] = portXY(e); zoomAt(x, y, Math.exp(-dy * (e.ctrlKey ? 0.01 : 0.0015)));   // ctrl+wheel = trackpad pinch
+}, { passive: false });
+port.addEventListener('dblclick', e => { if (D.doc || D.img) { const [x, y] = portXY(e); zoomAt(x, y, 2); } });
+port.addEventListener('auxclick', e => { if (e.button === 1) e.preventDefault(); });
+new ResizeObserver(() => { if (drwOpen() && (D.doc || D.img)) { if (D.mode) fit(D.mode); else setView(D.s, D.x, D.y); } }).observe(port);
+$('#drw .dbar').addEventListener('click', e => {
+  const b = e.target.closest('button[data-d]'); if (!b) return;
+  const a = b.dataset.d, cx = port.clientWidth / 2, cy = port.clientHeight / 2;
+  if (a === 'close') { closeDrawing(); return; }
+  if (!(D.doc || D.img)) return;
+  if (a === 'in') zoomAt(cx, cy, 1.25); else if (a === 'out') zoomAt(cx, cy, 0.8);
+  else if (a === 'page' || a === 'width') fit(a); else if (a === 'one') zoomAt(cx, cy, 1 / D.s);
+  else if (a === 'rot') { D.rot = (D.rot + 90) % 360; showPage(); }
+  else if (a === 'prev') goPage(-1); else if (a === 'next') goPage(1);
+});
+document.addEventListener('keydown', e => {
+  if (!drwOpen() || e.key === 'Escape' || e.ctrlKey || e.metaKey || e.altKey || typing(e) || !(D.doc || D.img)) return;
+  const cx = port.clientWidth / 2, cy = port.clientHeight / 2, st = e.shiftKey ? 240 : 60;
+  const act = { '+': () => zoomAt(cx, cy, 1.25), '=': () => zoomAt(cx, cy, 1.25), '-': () => zoomAt(cx, cy, 0.8), '_': () => zoomAt(cx, cy, 0.8), '0': () => fit('page'),
+    ArrowLeft: () => setView(D.s, D.x + st, D.y), ArrowRight: () => setView(D.s, D.x - st, D.y),
+    ArrowUp: () => setView(D.s, D.x, D.y + st), ArrowDown: () => setView(D.s, D.x, D.y - st),
+    PageUp: () => goPage(-1), PageDown: () => goPage(1) }[e.key];
+  if (act) { e.preventDefault(); act(); }
+});
+
+/* HUD: this product's drawings, and the last drawing seen */
+let productSheets = [];
+/* the studio's own drawings of a design: make it, follow it, show its exact sizes */
+const drwState = { pid: null, state: 'none', made_at: null, revision: null, progress: null, sizes: null, job_id: null, user_text: null, sheets: 0, failed: [], set: null, stale: false, stale_reason: null, stopped: false, previous: null };
+let drwStaleTries = 0;
+let previousSheets = [];                          // the studio's previous set (the revision picker's second entry)
+let drwTimer = null, drwWant = null;            // drwWant: the design the user pressed "Make drawings" for, until its first sheet opens
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const madeText = iso => { const d = new Date(iso); if (isNaN(d)) return ''; const z = n => String(n).padStart(2, '0'); return `${d.getDate()} ${MON[d.getMonth()]} ${z(d.getHours())}:${z(d.getMinutes())}`; };
+const isStudio = s => s.kind !== 'designer' && (s.group === 'studio' || s.group === 'parts' || s.group === 'assembly');          // a sheet of another kind listed among the parts is not the studio's; the part sheets and the assembly belong to the studio's set
+const studioSheets = () => productSheets.filter(isStudio);
+const drwMaking = () => !!shownProduct && drwState.pid === shownProduct.product_id && drwState.state === 'making';
+function drwReset(pid) {
+  clearTimeout(drwTimer); drwTimer = null; if (drwWant && drwWant !== pid) drwWant = null;
+  Object.assign(drwState, { pid, state: 'none', made_at: null, revision: null, progress: null, sizes: null, job_id: null, user_text: null, sheets: 0, failed: [], set: null, stale: false, stale_reason: null, stopped: false, previous: null });
+  previousSheets = []; drwStaleTries = 0;
+}
+function pollDrawings(pid) {
+  clearTimeout(drwTimer); drwTimer = null;          // (renderBom runs before shownProduct is set: the answer is checked, not the call)
+  fetch('/api/drawings/' + encodeURIComponent(pid) + '/status', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(s => {
+    if (!shownProduct || shownProduct.product_id !== pid) return;
+    if (!s) { if (drwState.pid === pid && drwState.state === 'making') drwTimer = setTimeout(() => pollDrawings(pid), 3000); return; }
+    const was = drwState.pid === pid ? drwState.state : 'none', madeBefore = drwState.made_at, sheetsBefore = drwState.pid === pid ? drwState.sheets : 0, setBefore = drwState.pid === pid ? drwState.set : null;
+    Object.assign(drwState, { pid, state: s.state, made_at: s.made_at, revision: s.revision, progress: s.progress, sizes: s.sizes, job_id: s.job_id, user_text: s.user_text,
+      sheets: s.sheets || 0, failed: Array.isArray(s.failed_parts) ? s.failed_parts : [], set: s.set || null,
+      stale: !!s.stale, stale_reason: s.stale_reason || null, stopped: !!s.stopped, previous: s.previous || null });
+    if (s.state === 'making') drwTimer = setTimeout(() => pollDrawings(pid), 3000);    // one small request every 3 s, only while making
+    if (s.state !== 'stale') drwStaleTries = 0;
+    else if (drwStaleTries++ < 8) drwTimer = setTimeout(() => pollDrawings(pid), 5000);   // out of date for a moment is normal: the job that follows the change is about to start
+    if ((s.state === 'current' || s.state === 'stale') && (was === 'making' || s.made_at !== madeBefore)) loadSheets(pid, true);
+    else if (s.state === 'making' && ((s.sheets || 0) !== sheetsBefore || (s.set || null) !== setBefore)) loadSheets(pid, true);     // the new views sheet is listed before the parts are drawn
+    updateDrwBtns(); refreshEnvelope();
+  }).catch(() => { if (drwState.pid === pid && drwState.state === 'making') drwTimer = setTimeout(() => pollDrawings(pid), 3000); });
+}
+function makeDrawings() {
+  if (!shownProduct) return;
+  const pid = shownProduct.product_id; drwWant = pid;
+  Object.assign(drwState, { pid, state: 'making', progress: null, user_text: null, failed: [], stopped: false });
+  updateDrwBtns();
+  fetch('/api/drawings/' + encodeURIComponent(pid) + '/make', { method: 'POST' }).then(r => r.ok ? r.json() : Promise.reject()).then(() => pollDrawings(pid))
+    .catch(() => { if (shownProduct && shownProduct.product_id === pid) { drwState.state = 'failed'; drwState.user_text = 'The drawings could not be started.'; drwWant = null; updateDrwBtns(); } });
+}
+function loadSheets(id, after) {
+  fetch('/api/drawings/' + encodeURIComponent(id) + '?previous=1', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(l => {
+    if (!shownProduct || shownProduct.product_id !== id) return;
+    const all = (Array.isArray(l) ? l : []).filter(x => x && x.url).map(x => ({ label: x.label || x.url.split('/').pop(), url: x.url, group: x.group || 'designer', kind: x.kind || 'designer', set: x.set || 'current', made_at: x.made_at || null, revision: x.revision ?? null }));
+    productSheets = all.filter(x => x.set !== 'previous'); previousSheets = all.filter(x => x.set === 'previous');
+    updateDrwBtns();
+    if (!after) return;
+    const st = studioSheets();
+    if (drwWant === id && st.length) {            // the user pressed Make: open the first sheet (Views) when it is ready
+      drwWant = null;
+      const name = shownProduct.name || shownProduct.product_id, revs = productRevs();
+      openDrawing(st[0].url, sheetTitle(name, st[0], revs[0]), { owner: 'product', name, revs });
+    } else if (drwOpen() && D.owner === 'product' && st.length && D.opts && D.opts.revs) {    // "Make again": the open sheet shows the new set
+      const name = D.opts.name, revs = productRevs(), old = D.opts.revs.flatMap(x => x.sheets).find(x => x.url === D.url);
+      const next = old && isStudio(old) && !previousSheets.some(x => x.url === old.url) ? (st.find(x => x.label === old.label) || st[0]) : null;
+      if (next) openDrawing(next.url, sheetTitle(name, next, revs[0]), { owner: 'product', name, revs });
+    }
+  }).catch(() => {});
+}
+/* the revision picker's entries: the current set (with any other sheets) and, when one is kept, the previous set */
+function productRevs() {
+  const cur = { rev: null, sheets: productSheets };
+  if (!previousSheets.length) return [cur];
+  const lab = (w, x) => `${w} (rev ${x.revision ?? '—'}${x.made_at ? ', ' + madeText(x.made_at) : ''})`;
+  const c0 = productSheets.find(isStudio) || {}, p0 = previousSheets[0];
+  return [{ rev: null, label: lab('Current', c0), sheets: productSheets }, { rev: null, label: lab('Previous', p0), prev: true, sheets: previousSheets }];
+}
+function updateDrwBtns() {
+  const dw = $('#dwgBtn'), last = $('#drwBtn'), mine = shownProduct && productSheets.length;
+  if (!shownProduct) { dw.className = 'hb'; }
+  else if (drwMaking()) {
+    const pr = drwState.progress;       // "part 3 of 8" while the parts are drawn
+    dw.className = 'hb on busy'; dw.textContent = pr && pr.part && pr.of ? `Making drawings… part ${Math.min(pr.of, (pr.done || 0) + 1)} of ${pr.of}`
+      : pr && (pr.step === 'views' || pr.step === 'assembly') ? `Making drawings… ${pr.step}` : 'Making drawings…';      // views, assembly
+    dw.title = 'The drawings are being made; the 3D view stays free'; }
+  else if (drwState.pid === shownProduct.product_id && drwState.state === 'failed' && !mine) {      // a failure with nothing to show says so, and pressing tries again
+    dw.className = 'hb on bad'; dw.textContent = 'Drawings · try again'; dw.title = 'The drawings could not be made. Press to try again.'; }
+  else if (drwState.pid === shownProduct.product_id && drwState.state === 'failed') {      // the drawings that exist still open; the bar has the failure line and its own Make again
+    dw.className = 'hb on bad'; dw.textContent = `Drawings · ${productSheets.length} · last try failed`; dw.title = 'The last try to make new drawings failed. Open the drawings; Make again is in the bar.'; }
+  else if (mine && drwState.pid === shownProduct.product_id && drwState.stale) {
+    dw.className = 'hb on stale'; dw.textContent = 'Drawings · out of date';
+    dw.title = drwState.stale_reason === 'rules' ? 'The drawing rules changed since these drawings were made' : 'The design changed since these drawings were made'; }
+  else if (mine) { dw.className = 'hb on'; dw.textContent = `Drawings · ${productSheets.length}`; dw.title = 'Open the drawings of this design'; }
+  else { dw.className = 'hb on'; dw.textContent = 'Make drawings'; dw.title = 'Make the drawings of this design'; }
+  last.className = 'hb' + (lastDrawing && !(mine && productSheets.some(s => s.url === lastDrawing.url)) ? ' on' : '');
+  drwStudioBar();
+}
+/* the drawing bar's status line and button for the studio's own sheets */
+function drwStudioBar(url) {
+  const made = $('#drwMade'), again = $('#drwAgain'), cur = url || D.shown;
+  const own = (drwOpen() || !!url) && D.owner === 'product' && shownProduct && drwState.pid === shownProduct.product_id;
+  const onStudio = own && productSheets.some(s => isStudio(s) && s.url === cur);
+  const hasStudio = studioSheets().length > 0;
+  made.hidden = !(onStudio && (drwState.made_at || drwMaking() || drwState.stopped));
+  again.hidden = !own || (!onStudio && hasStudio);
+  if (!made.hidden) made.textContent = drwMaking() ? (hasStudio ? 'Making the drawings again…' : 'Making the drawings…')
+    : drwState.stopped ? 'Stopped. The last drawings are kept.' : `Made ${madeText(drwState.made_at)} from revision ${drwState.revision ?? '—'}. All sizes measured from the model.`;
+  again.textContent = hasStudio ? 'Make again' : 'Make drawings'; again.disabled = drwMaking();
+  const stop = $('#drwStop'); stop.hidden = !(own && drwMaking()); stop.disabled = false;     // Stop while the drawings are being made
+  // a sheet of a set that no longer matches its design (or the previous set) says so, in one closable line
+  const ban = $('#drwStale'), prevOpen = own && previousSheets.some(s => s.url === cur), staleNow = onStudio && drwState.stale && !prevOpen;
+  if (staleNow || prevOpen) {
+    const why = drwState.stale_reason === 'rules' ? 'the drawing rules changed' : 'the design changed';
+    ban.hidden = ban.dataset.closed === (cur || '');
+    $('#drwStaleText').textContent = `Out of date: ${why} since these drawings were made.` + (staleNow ? (drwMaking() ? ' New drawings are being made.' : ' Press Make again.') : '');
+  } else ban.hidden = true;
+  // the parts that could not be drawn, in plain words (the four reasons the geometry service gives)
+  const bad = $('#drwFailed'), fl = onStudio && !drwMaking() ? (drwState.failed || []).filter(f => f && f.ref) : [];
+  const isAsm = f => f.ref === '*assembly' || f.ref === 'ASSEMBLY';      // the assembly drawing is not a part (its entry's ref is a sentinel no part ref can have)
+  const lost = onStudio && !drwMaking() && drwState.state === 'failed';
+  bad.hidden = !fl.length && !lost;
+  const asm = fl.find(isAsm), pf = fl.filter(f => !isAsm(f));
+  if (lost) bad.textContent = (drwState.user_text || 'The drawings could not be made.') + ' Press Make again to try again.';
+  else if (fl.length) bad.textContent = [asm ? `The assembly drawing could not be made (${asm.why || 'it could not be drawn'}).` : '',
+    pf.some(f => f.ref === '*') ? 'The part drawings could not be made.'
+      : pf.length ? `${pf.length} part drawing${pf.length === 1 ? '' : 's'} could not be made: ` + pf.map(f => `${f.ref} (${f.why || 'it could not be drawn'})`).join(', ') : ''].filter(Boolean).join(' ');
+}
+$('#drwAgain').addEventListener('click', makeDrawings);
+$('#drwStop').addEventListener('click', () => {            // Stop; the last drawings stay and the bar says so
+  if (!shownProduct) return;
+  const pid = shownProduct.product_id; $('#drwStop').disabled = true;
+  fetch('/api/drawings/' + encodeURIComponent(pid) + '/stop', { method: 'POST' }).then(() => pollDrawings(pid)).catch(() => {});
+});
+$('#drwStaleX').addEventListener('click', () => { $('#drwStale').dataset.closed = D.shown || ''; $('#drwStale').hidden = true; });
+/* the part card's envelope is the exact size measured from the model once the design has its drawings */
+function exactEnvelope(ref) {
+  const sz = drwState.sizes && shownProduct && drwState.pid === shownProduct.product_id ? drwState.sizes[ref] : null;
+  return Array.isArray(sz) && sz.length === 3 ? [...sz].sort((a, b) => b - a) : null;
+}
+function refreshEnvelope() {
+  document.querySelectorAll('#partCard dd.env').forEach(dd => {
+    const ex = exactEnvelope(dd.dataset.ref);
+    if (ex) { dd.textContent = ex.map(x => Number(x).toLocaleString(undefined, { maximumFractionDigits: 1, minimumFractionDigits: 1 })).join(' × ') + ' mm'; dd.title = 'Measured from the model'; }
+    else if (dd.dataset.orig) { dd.textContent = dd.dataset.orig; dd.removeAttribute('title'); }
+  });
+}
+$('#dwgBtn').addEventListener('click', () => {
+  if (!shownProduct) return;
+  if (drwMaking()) return;
+  if (!productSheets.length) { makeDrawings(); return; }      // with nothing to show a press makes them (after a failure too); otherwise it opens what exists
+  const name = shownProduct.name || shownProduct.product_id, revs = productRevs();
+  openDrawing(productSheets[0].url, sheetTitle(name, productSheets[0], revs[0]), { owner: 'product', name, revs });
+});
+$('#drwBtn').addEventListener('click', () => openDrawing());
+window.openDrawing = openDrawing; window.closeDrawing = closeDrawing; window.drwState = drwState; window.drwStudioBar = drwStudioBar;
+window.viewFrom = viewFrom; window.fitAll = fitAll;
+
+/* ---------- a design linked from the catalogue page, /?open=<design id>[&part=<ref>] ----------
+   It opens as a click on the design in the portfolio does, then the part is selected.
+   The address goes back to / at once, so a reload does not open it again. */
+const LINKED = (() => {
+  try {
+    const q = new URLSearchParams(location.search), id = q.get('open');
+    if (!id) return null;
+    history.replaceState(null, '', location.pathname + location.hash);
+    return { id, ref: q.get('part') };
+  } catch (e) { return null; }
+})();
+async function openLinked(L) {
+  await openProduct(L.id);
+  for (let i = 0; i < 150 && !(shownProduct && shownProduct.product_id === L.id && model); i++) await new Promise(r => setTimeout(r, 200));
+  if (!(shownProduct && shownProduct.product_id === L.id)) {
+    toast('That design could not be opened.');
+    if (current && current !== L.id) renderProduct(current).catch(() => {});
+    return;
+  }
+  if (L.ref && (shownProduct.bom || []).some(b => b.ref === L.ref)) selectPart(L.ref);
+}
+
+/* ---------- start: the design shown before a reload comes back ---------- */
+loadPortfolio(); pollState(); updateDrwBtns();
+if (current && !LINKED) renderProduct(current).catch(() => {});      // a linked design is drawn instead
+if (LINKED) openLinked(LINKED).catch(() => {});
+</script>
+</body>
+</html>

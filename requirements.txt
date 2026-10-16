@@ -1,0 +1,31 @@
+# Product environment of Buildcore. Python 3.13.
+# Full transitive lock: requirements.lock.txt.
+build123d==0.12.0
+
+# web app (framework/web/app.py: fastapi + starlette + pydantic, uvicorn; psutil for the process tree)
+# No python-multipart: app.py parses multipart itself with the stdlib.
+fastapi==0.141.1
+uvicorn==0.53.0
+pydantic==2.13.5
+starlette==1.7.0
+psutil==7.2.2
+numpy==2.4.4               # kernel/signature.py, dfm mold_tool
+
+# tests
+pytest==9.1.1
+
+# catalogue on Postgres: psycopg 3, binary build
+psycopg[binary]==3.3.6
+
+# pictures: flattening onto white and the sheet
+pillow==12.2.0
+# drawings: the drawing engine writes its PDF sheets with matplotlib's PDF backend. The six pins are the
+# lock's; installed with --no-deps.
+matplotlib==3.11.2
+contourpy==1.4.0
+cycler==0.12.1
+kiwisolver==1.5.1
+python-dateutil==2.9.0.post0
+six==1.17.0
+# drawings: the assembly drawing labels balloons with scipy.ndimage (framework/kernel/drawings/assembly.py); the pin is requirements.lock.txt's
+scipy==1.17.1

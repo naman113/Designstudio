@@ -1,0 +1,7 @@
+#!/bin/sh
+# buildcore inside the image (installed on PATH): the CLI (framework/cli.py) against the gateway in the same stack
+# (BUILDCORE_URL=http://gateway:8800, set in the image). Files are read and written relative to the current folder:
+#   docker compose run --rm cli drawing part.step   the clone root is mounted at /work: inputs and outputs are host files
+#   docker compose exec gateway buildcore ...       container-only paths (--id PID, /app/samples); outputs stay inside
+# From a clone without Docker exec, scripts/buildcore runs the same CLI on the host against 127.0.0.1:8800.
+PYTHONPATH="/app${PYTHONPATH:+:$PYTHONPATH}" exec python -m framework.cli "$@"

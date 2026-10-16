@@ -1,0 +1,47 @@
+# planning notes stay local (never published)
+.planning/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+/dist/
+/build/
+
+# Data and outputs (anchored to the repo root so no nested package is ignored)
+/out/
+/data/
+/work/
+/cad/
+/.containers/
+/buildcore-out/
+*.db
+*.sqlite
+
+# Catalogue database (SQLite system of record) and its journal files
+framework/catalog/catalog.db
+framework/catalog/catalog.db-*
+
+# Runtime files written by the services
+framework/web/static/meshes/
+framework/web/static/files/*
+!framework/web/static/files/.gitkeep
+/models/
+framework/products/*
+!framework/products/.gitkeep
+
+# Safety net: CAD source files are never committed
+*.step
+*.STEP
+*.stp
+*.STP
+*.FCStd
+*.FCBak
+
+# Secrets and OS
+.env
+.env.*
+**/.env*
+.DS_Store

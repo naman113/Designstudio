@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Activity</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=Barlow:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* same tokens as the studio page (index.html), the comparison page and the Services page */
+  :root{
+    --dye-900:#0B1322; --dye-800:#101B31; --dye-700:#152442; --dye-600:#1C3059;
+    --rule:#243757; --rule-strong:#33507F;
+    --steel:#B9C3D3; --steel-dim:#7C8AA3; --scribe:#EAF1FA; --scribe-blue:#7FB3FF;
+    --brass:#D9A441; --ok:#62C48A; --bad:#E0646C;
+    --display:"Barlow Condensed",system-ui,sans-serif;
+    --body:"Barlow",system-ui,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--dye-900);color:var(--steel);font:15px/1.5 var(--body)}
+  button{font:inherit}
+  :focus-visible{outline:2px solid var(--scribe-blue);outline-offset:2px}
+  a{color:var(--scribe-blue)}
+  #sheet{margin:12px;border:1px solid var(--rule-strong);position:relative;min-height:calc(100vh - 24px)}
+  #sheet::before{content:"";position:absolute;inset:6px;border:1px solid var(--rule);pointer-events:none}
+  header{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 24px;padding:22px 26px 14px;border-bottom:1px solid var(--rule)}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--steel-dim);text-transform:uppercase}
+  h1{margin:2px 0 0;font-family:var(--display);font-weight:600;font-size:28px;color:var(--scribe);letter-spacing:.01em;line-height:1.1}
+  #meta{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--steel-dim);text-align:right}
+  #meta b{color:var(--scribe);font-weight:500}
+  #dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--brass);margin-right:6px;vertical-align:baseline}
+  #dot.live{background:var(--ok)}
+  main{padding:16px 26px 28px}
+  .bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-bottom:14px}
+  #sendTest{background:var(--dye-600);color:var(--scribe);border:1px solid var(--scribe-blue);cursor:pointer;
+    font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:.1em;text-transform:uppercase;padding:6px 16px}
+  #sendTest:hover:not(:disabled){background:var(--dye-700)}
+  #sendTest:disabled{opacity:.5;cursor:default}
+  #sendSlow{background:transparent;color:var(--scribe);border:1px solid var(--rule-strong);cursor:pointer;
+    font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:.1em;text-transform:uppercase;padding:6px 16px}
+  #sendSlow:hover:not(:disabled){background:var(--dye-700)}
+  #sendSlow:disabled{opacity:.5;cursor:default}
+  .stopBtn{background:transparent;color:var(--bad);border:1px solid var(--bad);cursor:pointer;font-family:var(--display);
+    font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:1px 10px}
+  .stopBtn:hover:not(:disabled){background:rgba(224,100,108,.15)}
+  .stopBtn:disabled{opacity:.55;cursor:default}
+  .note{font-size:12px;color:var(--brass)}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:18px}
+  .tile{background:var(--dye-800);border:1px solid var(--rule);padding:10px 12px}
+  .tile .k{font-family:var(--display);font-weight:600;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--steel-dim)}
+  .tile .v{font-family:var(--mono);font-size:22px;color:var(--scribe);line-height:1.2;margin-top:2px}
+  .tile .s{font-family:var(--mono);font-size:11px;color:var(--steel-dim)}
+  .tile.warn .v{color:var(--brass)} .tile.good .v{color:var(--ok)} .tile.bad .v{color:var(--bad)}
+  h2{font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:var(--scribe);margin:20px 0 6px}
+  .wrap{overflow-x:auto;border:1px solid var(--rule)}
+  table{border-collapse:collapse;width:100%;font-size:13px}
+  th{position:sticky;top:0;background:var(--dye-700);text-align:left;font-family:var(--display);font-weight:600;font-size:12px;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--steel-dim);padding:6px 8px;border-bottom:1px solid var(--rule-strong);white-space:nowrap}
+  td{padding:6px 8px;border-bottom:1px solid var(--rule);vertical-align:middle}
+  td.n{font-family:var(--mono);font-size:12px;white-space:nowrap}
+  tr.job{cursor:pointer} tr.job:hover td{background:var(--dye-700)}
+  tr.job.child td:nth-child(3){padding-left:26px}
+  tr.job.open td{background:var(--dye-600)}
+  tr.job.failed,tr.job.timed_out{background:rgba(224,100,108,.07)}
+  tr.detail td{background:var(--dye-800);padding:8px 14px 10px 34px}
+  tr.detail ul{margin:0;padding:0;list-style:none;font-size:13px}
+  tr.detail li{display:flex;flex-wrap:wrap;gap:0 12px;padding:1px 0}
+  tr.detail .sq{font-family:var(--mono);font-size:11px;color:var(--steel-dim);width:20px}
+  tr.detail .ms{font-family:var(--mono);font-size:11px;color:var(--steel-dim);width:84px}
+  tr.detail .lab{color:var(--scribe)}
+  tr.detail .ut{color:var(--brass)}
+  .jobid{font-family:var(--mono);font-size:12px;color:var(--scribe)}
+  .sub{display:block;font-size:12px;color:var(--brass)}
+  .path{display:flex;align-items:center;gap:3px;flex-wrap:nowrap}
+  .seg{font-family:var(--mono);font-size:10px;padding:0 5px;border:1px solid var(--rule);color:var(--steel-dim);white-space:nowrap;opacity:.55}
+  .seg.passed{opacity:1;color:var(--ok);border-color:rgba(98,196,138,.45)}
+  .seg.lit{opacity:1;color:var(--dye-900);background:var(--scribe-blue);border-color:var(--scribe-blue)}
+  .seg.lit.good{background:var(--ok);border-color:var(--ok)}
+  .seg.lit.bad{background:var(--bad);border-color:var(--bad)}
+  .arrow{color:var(--steel-dim);font-size:10px}
+  .pill{display:inline-block;font-family:var(--mono);font-size:11px;padding:0 6px;border:1px solid currentColor;white-space:nowrap}
+  .pill.queued{color:var(--steel-dim)} .pill.dispatched,.pill.running,.pill.stopping{color:var(--brass)}
+  .pill.succeeded{color:var(--ok)} .pill.failed,.pill.timed_out{color:var(--bad)} .pill.stopped{color:var(--steel-dim)}
+  tr.dead td,tr.deadq td{color:var(--bad)}
+  /* the log trail of one job */
+  #trail{margin-bottom:22px}
+  #trailHead{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin:2px 0 10px;color:var(--scribe)}
+  #trailHead .what{font-family:var(--display);font-weight:600;font-size:18px}
+  .strip{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+  .chip{background:var(--dye-800);border:1px solid var(--rule-strong);padding:3px 10px;font-family:var(--display);font-weight:600;
+    font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--scribe)}
+  .chip b{font-family:var(--mono);font-weight:500;font-size:13px;color:var(--scribe-blue);margin-left:6px}
+  .chip.dim{opacity:.4}
+  tr.line td{padding:3px 8px;font-size:12.5px}
+  tr.line .svc{color:var(--scribe)}
+  .trailLink{font-size:12px}
+  #trailBack{display:inline-block;margin-top:8px;font-size:13px}
+  .empty{padding:14px;color:var(--steel-dim);font-family:var(--display);font-size:16px;letter-spacing:.04em;text-transform:uppercase}
+  footer{padding:0 26px 22px;font-size:12px;color:var(--steel-dim)}
+  @media (max-width:640px){header,main,footer{padding-left:16px;padding-right:16px}#meta{margin-left:0;text-align:left}}
+</style>
+<link rel="stylesheet" href="/static/rail.css">
+<script src="/static/rail.js" defer></script>
+</head>
+<body>
+<div id="sheet">
+  <header>
+    <div>
+      <div class="eyebrow">Studio services</div>
+      <h1>Activity</h1>
+    </div>
+    <div id="meta"><span id="dot"></span><b id="live">connecting</b> &middot; last step <b id="lastStep">-</b><br><a href="/services">Services</a> &middot; <a href="/">studio</a></div>
+  </header>
+  <main>
+    <div class="bar">
+      <button id="sendTest" type="button">Send test job</button>
+      <button id="sendSlow" type="button">Send slow test job</button>
+      <span class="note" id="sendNote"></span>
+    </div>
+    <div class="tiles" id="tiles"></div>
+
+    <section id="trail" hidden>
+      <h2>Log trail</h2>
+      <div id="trailHead"></div>
+      <div class="strip" id="trailStrip"></div>
+      <div class="wrap">
+        <table>
+          <thead><tr><th>When</th><th>+ ms</th><th>Service</th><th>Job</th><th>What happened</th><th>Step</th><th>Result</th><th>Took (ms)</th></tr></thead>
+          <tbody id="trailRows"></tbody>
+        </table>
+        <div class="empty" id="trailEmpty" hidden>No lines were found for this job.</div>
+      </div>
+      <a href="/activity" id="trailBack">All jobs</a>
+    </section>
+
+    <h2>Jobs</h2>
+    <div class="wrap">
+      <table>
+        <thead><tr><th>When</th><th>Job</th><th>What</th><th>Path</th><th>State</th><th>Try</th><th>Took</th><th></th></tr></thead>
+        <tbody id="jobs"></tbody>
+      </table>
+      <div class="empty" id="noJobs" hidden>No jobs yet. Press "Send test job".</div>
+    </div>
+
+    <h2>Queues</h2>
+    <div class="wrap">
+      <table>
+        <thead><tr><th>Queue</th><th>Waiting</th><th>Ready</th><th>Sent in total</th><th>Oldest waiting (s)</th></tr></thead>
+        <tbody id="queues"></tbody>
+      </table>
+    </div>
+
+    <h2>Copies</h2>
+    <div class="wrap">
+      <table>
+        <thead><tr><th>Time</th><th>Service</th><th>Copies</th><th>Why</th></tr></thead>
+        <tbody id="scaling"></tbody>
+      </table>
+      <div class="empty" id="noScaling">No changes yet: each service runs one copy until work waits.</div>
+    </div>
+
+    <h2>Moved aside</h2>
+    <div class="wrap">
+      <table>
+        <thead><tr><th>When</th><th>Job</th><th>What</th><th>Tries</th><th>Reason</th></tr></thead>
+        <tbody id="dead"></tbody>
+      </table>
+      <div class="empty" id="noDead">Nothing moved aside.</div>
+    </div>
+  </main>
+  <footer>Steps appear as they happen. Click a job to see its steps. This page shows step names and times only, never the content of a request.</footer>
+</div>
+<script>
+"use strict";
+// ---- labels (product words) -----------------------------------------------------------------------------------------
+const SERVICE = {gateway: "Studio", orchestrator: "Orchestrator", catalogue: "Catalogue",
+                 geometry: "Geometry"};
+const STATE = {skipped: "Not needed", queued: "Waiting", dispatched: "Sent", running: "Working", succeeded: "Done", failed: "Failed",
+               timed_out: "Too long", stopping: "Stopping", stopped: "Stopped"};
+const JOBTYPE = {"catalogue.echo": "Test job", "catalogue.echo_once": "Test job (not repeated)",
+                 "catalogue.find": "Catalogue search",
+                 "catalogue.list": "Product list", "catalogue.show": "Product details",
+                 "dual.mesh": "3D view (both engines)", "dual.step_out": "Download (both engines)",
+                 "dual.measure": "Measuring (both engines)",
+                 // trash, restore, erase (a recipe with its steps) and the test recipe
+                 "product.erase": "Erase a design", "catalogue.erase": "Erase from the catalogue",
+                 "catalogue.trash": "Move to the trash",
+                 "catalogue.restore": "Restore from the trash", "recipe.echo_pair": "Test job in two steps",
+                 // adding a design (a recipe across the catalogue, the engines and geometry)
+                 "upload.build": "Adding a design", "catalogue.add_prepare": "Receiving the files",
+                 "catalogue.add": "Registering the parts", "catalogue.capture_scripts": "Noting how the parts were made", "catalogue.load": "Measuring parts and finding fits",
+                 // the drawings of a design
+                 "drawings.make": "Make drawings", "catalogue.publish_drawings": "Hand over drawings",
+                 "catalogue.drawing_bom": "Parts list",
+                 "catalogue.publish_drawing": "Handing over a drawing",
+                 // loading a design (the first engine's measurements, the second engine's, their comparison)
+                 "product.load": "Loading a design"};
+// the eight geometry jobs, by operation name
+const GEOMETRY = {measure: "Measuring", read_step: "Reading files", mesh: "Preparing a 3D view",
+                  step_out: "Preparing a download", check: "Checking clearances", signature: "Shape signatures",
+                  topology: "Counting faces and edges", selftest: "Self-test", draw_overview: "Drawing the views and the assembly",
+                  measure_file: "Measuring a file", check_file: "Checking parts against each other",
+                  draw_parts: "Drawing the parts", openings: "Finding the openings", fits: "Fit and clearance check",
+                  part_view: "Preparing a part's 3D view", part_step: "Preparing a part's download",
+                  tight_extent: "Measuring parts' exact sizes"};
+for (const k of Object.keys(GEOMETRY)) JOBTYPE["geometry." + k] = GEOMETRY[k];
+const STEP = {echo: "answering the test", find: "searching the catalogue", propose: "working out the changes",
+              list: "listing the products", show: "reading the product", run: "working on your request",
+              mesh: "preparing the 3D view", step_out: "preparing the download",
+              primary: "first engine", shadow: "second engine", fallback: "second engine (standing in)",
+              compare: "comparing", measure: "measuring", read_step: "reading", check: "checking", signature: "shape signatures",
+              topology: "counting", selftest: "self-test",
+              erase: "erasing the design", drop_derived: "removing its 3D view and files", trash: "moving to the trash",
+              restore: "restoring", first: "first test step", second: "second test step",
+              // the steps of "Adding a design"
+              prepare: "receiving", read: "first engine reads", kread: "second engine reads", add: "registering",
+              load: "first engine's measurements", kmesh: "second engine's 3D view", compare_mesh: "comparing", compare_read: "comparing",
+              publish: "saving",
+              // the steps of "Make drawings"
+              overview: "drawing the views and the assembly", publish_overview: "handing over the drawings", views: "views",
+              draw_overview: "drawing the views and the assembly", assembly: "assembly",
+              // the parts list and the part drawings
+              bom: "reading the parts list", parts: "drawing the parts", publish_parts: "handing over the drawings",
+              draw_parts: "drawing the parts",
+              // the steps of "Loading a design" and of a catalogue load
+              kload: "second engine's measurements", compare_measure: "comparing", record: "recording", fits: "finding fits",
+              mirror: "updating the catalogue",
+              openings: "finding the openings", fits: "checking fits and clearances", reused: "already known",   // geometry.openings (a fresh file is reused)
+              measure_file: "measuring a file", check_file: "checking parts against each other",
+              // one part on its own (catalogue page)
+              part_view: "preparing the part's 3D view", part_step: "preparing the part's download",
+              tight_extent: "measuring parts' exact sizes"};
+const stepLabel = s => STEP[s] || (/^file_\d+$/.test(String(s || "")) ? "file " + String(s).slice(5) : null)
+  || (/^part_\d+_of_\d+$/.test(String(s || "")) ? "part " + String(s).split("_")[1] + " of " + String(s).split("_")[3] : null);
+const stepText = s => stepLabel(s);
+const FINAL = ["succeeded", "failed", "timed_out", "stopped"];
+const QUEUE_LABEL = {orch_in: "Orchestrator: incoming", orch_reply: "Orchestrator: answers",
+                     catalogue_q: "Catalogue: page reads", gw_reply: "Studio: answers"};
+const QUEUE_ORDER = ["orch_in", "orch_reply", "catalogue_cmd", "catalogue_ctl",
+                     "geometry_cmd", "geometry_ctl", "catalogue_q", "gw_reply"];
+const REASON = {bad_envelope: "This request could not be read.", handler_exception: "This step failed.",
+                handler_error: "This step failed.", max_reads: "This step failed 5 times in a row and was moved aside.",
+                dead_letter: "This step failed 5 times in a row and was moved aside.",
+                timed_out: "This step took longer than its time limit and was stopped.",
+                interrupted: "The work was interrupted. Please try again.",
+                geometry_timeout: "This geometry step took too long and was stopped.",
+                geometry_worker_lost: "The geometry step stopped unexpectedly.",
+                geometry_failed: "The geometry step could not be done.",
+                no_dump: "This design needs the first engine's pass first.",
+                no_shape: "This part has no 3D shape kept, so it cannot be shown or downloaded.",
+                check_fault: "This step failed on purpose.",
+                drawing_refused: "The drawing could not be handed over.",
+                drawing_failed: "The drawings could not be made.",
+                drawing_partial: "Some part drawings could not be made.",
+                measure_failed: "This design could not be measured.",
+                mesh_failed: "The 3D view could not be prepared.", export_failed: "The download could not be prepared.",
+                no_product: "There is no design with that name.", no_geometry: "None of the files contained solid geometry."};
+const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+const svc = n => SERVICE[n] || "Service";
+const typeLabel = t => JOBTYPE[t] || "Job";
+const stateLabel = s => STATE[s] || cap(String(s || "-"));
+function queueLabel(n){
+  if (QUEUE_LABEL[n]) return QUEUE_LABEL[n];
+  if (n.endsWith("check_reply")) return "Checks: answers";
+  if (n.endsWith("_dead")) return queueLabel(n.slice(0, -5)) + ": moved aside";
+  const m = /^([a-z]+)_(cmd|ctl)$/.exec(n);
+  if (m && SERVICE[m[1]]) return SERVICE[m[1]] + (m[2] === "cmd" ? ": work" : ": control");
+  return "Queue";
+}
+// one label for each of the 14 event types of the job record (job.text is content and is never listed)
+const EVENT_LABEL = {
+  "job.queued": () => "Waiting",
+  "job.dispatched": e => "Sent to the " + svc(e.service),
+  "job.started": e => svc(e.service) + " started",
+  "job.progressed": e => svc(e.service) + " working: " + (stepText(e.meta.step, e.service) || "a step") + (e.meta.total ? " " + e.meta.done + " of " + e.meta.total : ""),
+  "job.succeeded": () => "Done",
+  "job.failed": e => "Failed" + (e.user_text ? ": " + e.user_text : ""),
+  "job.retrying": e => "Trying again in " + e.meta.delay_s + " s (try " + e.meta.next_attempt + ")",
+  "job.redelivered": e => "Picked up again after an interruption (read " + e.meta.read_ct + ")",
+  "message.dead_lettered": e => "Moved aside after " + e.meta.reads + " tries",
+  "job.timed_out": () => "Took longer than its limit; stopped",
+  "job.stopping": () => "Stopping",
+  "job.stopped": () => "Stopped",
+  "job.adopted": () => "Picked up again after the orchestrator restarted",
+  "job.step_dispatched": e => cap(stepLabel(e.meta.step) || "step") + ": started",
+  "job.step_finished": e => cap(stepLabel(e.meta.step) || "step") + ": " + stateLabel(e.meta.state).toLowerCase(),
+  "job.position": e => e.meta.pos <= 1 ? "Waiting: next in line" : "Waiting: " + (e.meta.pos - 1) + " ahead"
+};
+const eventLabel = e => (EVENT_LABEL[e.type] || (() => "Step"))(e);
+// the path: Studio, Orchestrator, {target}, Orchestrator, Studio. The segment the newest step lights:
+const LIT = {"job.queued": 1, "job.position": 1, "job.retrying": 1, "job.adopted": 1, "job.dispatched": 2, "job.started": 2, "job.progressed": 2,
+             "job.redelivered": 2, "job.stopping": 2, "message.dead_lettered": 2,
+             "job.step_dispatched": 2, "job.step_finished": 2,
+             "job.succeeded": 4, "job.failed": 4, "job.timed_out": 4, "job.stopped": 4};
+
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const clock = iso => iso ? new Date(iso).toLocaleTimeString([], {hour12: false}) : "-";
+function took(ms){
+  if (ms == null) return "-";
+  return ms >= 1000 ? (ms / 1000).toFixed(1) + " s" : Math.round(ms) + " ms";
+}
+
+// ---- state ----------------------------------------------------------------------------------------------------------
+const jobs = new Map();        // job_id -> {job fields, events: [EventView in seq order], open, lit}
+const seen = new Set();        // every step id taken in: a step is never listed twice
+const waiting = new Map();     // job_id -> steps that arrived while the job's row was being fetched
+let lastId = 0, queues = [], dead = [], deadCount = null, es = null, scaling = [];
+const MAX_ROWS = 200;
+const $ = id => document.getElementById(id);
+
+const newJob = v => Object.assign({events: [], open: false, lit: null}, v);
+function jobFromEvent(ev){
+  return newJob({job_id: ev.job_id, short: ev.job_id.slice(0, 8), type: ev.job_type, target: ev.meta.target || null,
+                 parent_job_id: ev.meta.parent || null,
+                 state: ev.state, step: ev.step, attempt: ev.attempt, read_ct: ev.read_ct, error_code: null, user_text: null,
+                 created_at: ev.at, finished_at: null, ms: null});
+}
+
+// ---- applying a step to its job -------------------------------------------------------------------------------------
+function applyEvent(job, ev){
+  seen.add(ev.event_id);
+  if (ev.type === "job.text") return;
+  if (job.events.some(x => x.event_id === ev.event_id)) return;
+  job.events.push(ev);
+  job.events.sort((a, b) => a.seq - b.seq);
+  const newest = job.events[job.events.length - 1];
+  job.state = newest.state;
+  job.attempt = newest.attempt;
+  job.step = newest.step || job.step;
+  if (ev.meta.target) job.target = ev.meta.target;
+  else if (ev.service && ev.service !== "orchestrator" && (ev.type === "job.dispatched" || ev.type === "job.started")) job.target = ev.service;
+  if (ev.user_text) job.user_text = ev.user_text;
+  if (ev.error_code) job.error_code = ev.error_code;
+  if (FINAL.includes(ev.state)) {
+    job.finished_at = ev.at;
+    const first = job.events[0];
+    job.ms = ev.meta.ms != null ? ev.meta.ms : (first ? Date.parse(ev.at) - Date.parse(first.at) : null);
+  }
+  job.lit = LIT[newest.type] ?? job.lit;
+}
+
+function kidsOf(job){
+  return [...jobs.values()].filter(j => j.parent_job_id === job.job_id)
+    .sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at));
+}
+function middleName(job){
+  const kids = kidsOf(job);
+  if (!kids.length) return job.target ? svc(job.target) : "Service";
+  const out = [];
+  for (const k of kids) { const n = k.target ? svc(k.target) : "Service"; if (out[out.length - 1] !== n) out.push(n); }
+  return out.join(" \u2192 ");                          // a recipe: Catalogue -> Engines
+}
+function pathHtml(job){
+  const names = ["Studio", "Orchestrator", middleName(job), "Orchestrator", "Studio"];
+  const final = FINAL.includes(job.state);
+  const lit = job.lit == null ? (job.state === "queued" ? 1 : 2) : job.lit;
+  const tone = final ? (job.state === "succeeded" ? "good" : job.state === "stopped" ? "" : "bad") : "";
+  return '<div class="path">' + names.map((n, i) => {
+    const cls = i === lit ? "lit " + tone : (i < lit || (final && i < 4)) ? "passed" : "";
+    return (i ? '<span class="arrow">&rsaquo;</span>' : "") + `<span class="seg ${cls}">${esc(n)}</span>`;
+  }).join("") + "</div>";
+}
+
+function stepsHtml(job){
+  const first = job.events.length ? Date.parse(job.events[0].at) : 0;
+  return "<ul>" + job.events.map(e => {
+    const extra = e.user_text && e.type !== "job.failed" ? `<span class="ut">${esc(e.user_text)}</span>` : "";
+    return `<li data-event-id="${e.event_id}"><span class="sq">${e.seq}</span>` +
+      `<span class="ms">+${Math.max(0, Date.parse(e.at) - first)} ms</span><span class="lab">${esc(eventLabel(e))}</span>${extra}</li>`;
+  }).join("") + `<li class="trailrow"><a class="trailLink" href="/activity?trail=${esc(job.job_id)}">Log trail</a></li></ul>`;
+}
+
+const ageMs = job => job.ms != null ? job.ms : Math.max(0, Date.now() - Date.parse(job.created_at));
+
+const STOPPABLE = ["queued", "dispatched", "running", "stopping"];
+function stopHtml(job){
+  if (!STOPPABLE.includes(job.state)) return "<td></td>";
+  const busy = job.state === "stopping" || job.stopAsked;
+  return `<td><button type="button" class="stopBtn" data-job="${esc(job.job_id)}"${busy ? " disabled" : ""}>` +
+    `${busy ? "Stopping..." : "Stop"}</button></td>`;
+}
+async function askStop(job, btn){
+  job.stopAsked = true;
+  btn.disabled = true; btn.textContent = "Stopping...";
+  try {
+    const r = await fetch("/api/jobs/" + job.job_id + "/stop", {method: "POST"});
+    if (!r.ok) {
+      let msg = "The job could not be stopped.";
+      try { msg = (await r.json()).error || msg; } catch (e) { /* keep the default sentence */ }
+      $("sendNote").textContent = msg;
+      job.stopAsked = false; paint(job);
+    }
+  } catch (e) {
+    $("sendNote").textContent = "The job could not be stopped.";
+    job.stopAsked = false; paint(job);
+  }
+}
+
+function rowHtml(job){
+  const sub = job.user_text && ["failed", "timed_out", "stopped"].includes(job.state)
+    ? `<span class="sub">${esc(job.user_text)}</span>` : "";
+  return `<td class="n">${esc(clock(job.created_at))}</td><td><span class="jobid">${esc(job.short)}</span></td>` +
+    `<td>${job.parent_job_id ? "\u21b3 " : ""}${esc(typeLabel(job.type))}${sub}</td><td>${pathHtml(job)}</td>` +
+    `<td><span class="pill ${esc(job.state)}">${esc(stateLabel(job.state))}</span></td>` +
+    `<td class="n">${esc(job.attempt)}</td><td class="n took">${esc(took(ageMs(job)))}</td>` + stopHtml(job);
+}
+
+function placeChild(job, row, det){
+  const pid = job.parent_job_id;
+  let anchor = document.querySelector(`tr.detail[data-detail="${pid}"]`);
+  if (!anchor) return false;
+  for (const r of $("jobs").querySelectorAll(`tr.job[data-parent="${pid}"]`)) {
+    const o = jobs.get(r.dataset.job);
+    if (o && o !== job && Date.parse(o.created_at) <= Date.parse(job.created_at))
+      anchor = document.querySelector(`tr.detail[data-detail="${r.dataset.job}"]`) || anchor;
+  }
+  anchor.after(row);
+  row.after(det);
+  return true;
+}
+
+function paint(job){
+  let row = document.querySelector(`tr.job[data-job="${job.job_id}"]`);
+  let det = document.querySelector(`tr.detail[data-detail="${job.job_id}"]`);
+  const body = $("jobs");
+  if (!row) {
+    row = document.createElement("tr");
+    row.dataset.job = job.job_id;
+    row.addEventListener("click", ev => {
+      const btn = ev.target.closest(".stopBtn");
+      if (btn) { ev.stopPropagation(); if (!btn.disabled) askStop(job, btn); return; }
+      job.open = !job.open; paint(job);
+    });
+    det = document.createElement("tr");
+    det.className = "detail";
+    det.dataset.detail = job.job_id;
+    det.innerHTML = '<td colspan="8"></td>';
+    if (job.parent_job_id) row.dataset.parent = job.parent_job_id;
+    if (!(job.parent_job_id && placeChild(job, row, det))) {   // a recipe's step sits right under its parent
+      let before = null;                                 // newest first: before the first top-level row that is older
+      for (const r of body.querySelectorAll("tr.job:not([data-parent])")) {
+        const other = jobs.get(r.dataset.job);
+        if (other && Date.parse(other.created_at) < Date.parse(job.created_at)) { before = r; break; }
+      }
+      body.insertBefore(row, before);
+      body.insertBefore(det, before);
+    }
+    for (const k of kidsOf(job)) {                       // steps painted before their parent move under it
+      const kr = document.querySelector(`tr.job[data-job="${k.job_id}"]`), kd = document.querySelector(`tr.detail[data-detail="${k.job_id}"]`);
+      if (kr && kd) { kr.dataset.parent = job.job_id; placeChild(k, kr, kd); }
+    }
+    trim();
+  }
+  row.className = "job " + job.state + (job.open ? " open" : "") + (job.parent_job_id ? " child" : "");
+  row.innerHTML = rowHtml(job);
+  det.hidden = !job.open;
+  det.firstChild.innerHTML = stepsHtml(job);
+  $("noJobs").hidden = jobs.size > 0;
+}
+
+function trim(){
+  const rows = $("jobs").querySelectorAll("tr.job");
+  for (let i = MAX_ROWS; i < rows.length; i++) {
+    const id = rows[i].dataset.job;
+    document.querySelector(`tr.detail[data-detail="${id}"]`)?.remove();
+    rows[i].remove();
+    jobs.delete(id);
+  }
+}
+
+// ---- the log trail of one job: /activity?trail=<job id> -------------------------------------------------------
+const TSERVICE = Object.assign({cli: "Command line"}, SERVICE);
+const tsvc = n => TSERVICE[n] || "a service";
+const OP = {mesh: "3D view", export_mesh: "3D view", measure: "measuring", extract: "measuring",
+            read_step: "reading the model", import_step: "reading the model", step_out: "download", export_step: "download",
+            check: "checking fits", clash: "checking fits", signature: "fingerprint"};
+const opLabel = o => OP[o] || "work";
+const STATUS = {ok: "Done", error: "Failed", stopped: "Stopped", timeout: "Too long", timed_out: "Too long",
+                interrupted: "Interrupted", dead_letter: "Moved aside", max_reads: "Failed too often",
+                unavailable: "Not available", crash: "Stopped unexpectedly", lost: "Lost", refused: "Not run",
+                left: "Page closed", done: "Done", limit: "Limit reached", running_here: "Running here", not_here: "Not here",
+                replay: "Page came back", new: "Page opened", started: "Started", step: "Working"};
+const statusLabel = s => STATUS[s] || cap(String(s || "-").replace(/_/g, " "));
+const LINE = {
+  "client.submit": () => "Request sent", "client.answer": () => "Caller saw the answer", "client.stop": () => "Stop requested",
+  "upload.received": () => "File received",
+  "query.sent": () => "Page read", "query.answered": () => "Page read answered", "query.done": () => "Page read answered",
+  "cmd.sent": l => "Sent to the " + tsvc(l.target), "reply.read": () => "Answer received", "reply.late": () => "Late answer ignored",
+  "cmd.read": () => "Picked up", "cmd.started": () => "Started",
+  "cmd.progress": l => "Working: " + (stepLabel(l.step) || "a step"),
+  "cmd.done": l => "Finished: " + statusLabel(l.status).toLowerCase(),
+  "cmd.nack": () => "Will try again", "cmd.dead_letter": () => "Moved aside", "cmd.withdrawn": () => "Withdrawn",
+  "cmd.refused": l => "Not run: " + statusLabel(l.status).toLowerCase(), "ctl.stop": () => "Stop received", "ctl.ping": () => "Checked",
+  "job.position": () => "Waiting in line",
+  "pool.run": l => "Geometry: " + opLabel(l.op), "pool.recycle": () => "Worker renewed",
+  "job.queued": () => "Waiting", "job.dispatched": l => "Sent to the " + tsvc(l.target), "job.started": l => tsvc(l.target) + " started",
+  "job.progressed": l => tsvc(l.target) + " working: " + (stepText(l.step, l.target) || "a step"), "job.succeeded": () => "Done",
+  "job.failed": () => "Failed", "job.retrying": () => "Trying again",
+  "job.redelivered": l => "Picked up again after an interruption" + (l.read_ct ? " (read " + l.read_ct + ")" : ""),
+  "message.dead_lettered": () => "Moved aside", "job.timed_out": () => "Took longer than its limit; stopped",
+  "job.stopping": () => "Stopping", "job.stopped": () => "Stopped", "job.adopted": () => "Picked up again after the orchestrator restarted",
+  "job.step_dispatched": l => cap(stepLabel(l.step) || "step") + ": started",
+  "job.step_finished": l => cap(stepLabel(l.step) || "step") + ": finished"
+};
+const lineLabel = l => (LINE[l.event] || (() => "Step"))(l);
+const clockMs = iso => { const d = new Date(iso); return d.toLocaleTimeString([], {hour12: false}) + "." + String(d.getMilliseconds()).padStart(3, "0"); };
+let trailTimer = null;
+function paintTrail(t){
+  const j = t.job || {};
+  $("trailHead").innerHTML = `<span class="what">${esc(typeLabel(j.type))}</span><span class="jobid">${esc(j.short)}</span>` +
+    `<span class="pill ${esc(j.state)}">${esc(stateLabel(j.state))}</span><span class="n">Took ${esc(took(j.ms))}</span>` +
+    `<span class="n">${esc((t.jobs || []).length)} job(s), ${esc((t.lines || []).length)} line(s)${t.truncated ? " (the first " + esc(t.lines.length) + ")" : ""}</span>`;
+  const names = ["gateway", "orchestrator", "catalogue", "geometry"];
+  $("trailStrip").innerHTML = names.map(n => {
+    const c = t.services[n] || 0;
+    return `<span class="chip${c ? "" : " dim"}" data-service="${esc(n)}" data-count="${c}">${esc(svc(n))}<b>${c}</b></span>`;
+  }).join("");
+  const t0 = t.lines.length ? Date.parse(t.lines[0].at) : 0;
+  $("trailRows").innerHTML = t.lines.map(l => {
+    const res = l.state ? stateLabel(l.state) : (l.status ? statusLabel(l.status) : "");
+    const job = l.short ? `<span class="jobid">${esc(l.short)}</span> ${esc(typeLabel(l.job_type))}` : esc(typeLabel(l.job_type));
+    return `<tr class="line" data-line data-service="${esc(l.service)}"><td class="n">${esc(clockMs(l.at))}</td>` +
+      `<td class="n">+${Math.max(0, Date.parse(l.at) - t0)}</td><td class="svc">${esc(tsvc(l.service))}</td>` +
+      `<td style="padding-left:${8 + 14 * (l.depth || 0)}px">${job}</td><td>${esc(lineLabel(l))}</td>` +
+      `<td>${esc(stepLabel(l.step) || "")}</td><td>${esc(res)}</td><td class="n">${l.ms == null ? "" : esc(l.ms)}</td></tr>`;
+  }).join("");
+  $("trailEmpty").hidden = t.lines.length > 0;
+}
+async function loadTrail(id, again){
+  $("trail").hidden = false;
+  clearTimeout(trailTimer);
+  try {
+    const r = await fetch("/api/activity/trail/" + encodeURIComponent(id), {cache: "no-store"});
+    const t = await r.json();
+    if (!r.ok) { $("trailHead").textContent = t.error || "The log trail is not available."; return; }
+    paintTrail(t);
+    if (!FINAL.includes((t.job || {}).state) && again < 600) trailTimer = setTimeout(() => loadTrail(id, again + 1), 2500);   // follow a job still running
+  } catch (e) {
+    $("trailHead").textContent = "The log trail is not available right now.";
+  }
+}
+
+// ---- tiles, queues, moved aside -------------------------------------------------------------------------------------
+function tile(k, v, s, cls){
+  return `<div class="tile ${cls || ""}"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div><div class="s">${esc(s || "")}</div></div>`;
+}
+function paintTiles(){
+  let running = 0, waitingN = 0, done = 0, failed = 0;
+  for (const j of jobs.values()) {
+    if (["dispatched", "running", "stopping"].includes(j.state)) running++;
+    else if (j.state === "queued") waitingN++;
+    else if (j.state === "succeeded") done++;
+    else if (j.state === "failed" || j.state === "timed_out") failed++;
+  }
+  const aside = deadCount != null ? deadCount : dead.length;
+  $("tiles").innerHTML =
+    tile("Running", running, "sent, working or stopping", running ? "warn" : "") +
+    tile("Waiting", waitingN, "not yet sent") +
+    tile("Done", done, "finished", done ? "good" : "") +
+    tile("Failed", failed, "ended with a problem", failed ? "bad" : "") +
+    tile("Moved aside", aside, "set aside after repeated failures", aside ? "bad" : "");
+}
+function paintQueues(){
+  const rank = n => { const i = QUEUE_ORDER.indexOf(n); return i < 0 ? 100 : i; };
+  const rows = queues.filter(q => !q.dead || q.waiting > 0)
+    .sort((a, b) => (a.dead - b.dead) || (rank(a.queue) - rank(b.queue)) || a.queue.localeCompare(b.queue));
+  $("queues").innerHTML = rows.map(q =>
+    `<tr class="${q.dead ? "deadq" : ""}"><td>${esc(queueLabel(q.queue))}</td><td class="n">${esc(q.waiting)}</td>` +
+    `<td class="n">${esc(q.visible)}</td><td class="n">${esc(q.total)}</td>` +
+    `<td class="n">${q.oldest_s == null ? "-" : esc(Math.round(q.oldest_s))}</td></tr>`).join("");
+}
+function paintScaling(){
+  $("noScaling").hidden = scaling.length > 0;
+  $("scaling").innerHTML = scaling.map(s =>
+    `<tr class="scale"><td class="n">${esc(clock(s.at))}</td><td>${esc(s.label)}</td>` +
+    `<td class="n">${esc(s.before)} &rarr; ${esc(s.after)}</td><td>${esc(s.reason)}</td></tr>`).join("");
+}
+function takeScaling(list){
+  scaling = list || [];
+  paintScaling();
+}
+function paintDead(){
+  $("noDead").hidden = dead.length > 0;
+  $("dead").innerHTML = dead.map(d =>
+    `<tr class="dead"><td class="n">${esc(clock(d.dead_at))}</td><td><span class="jobid">${esc(d.job_id ? d.job_id.slice(0, 8) : "-")}</span></td>` +
+    `<td>${esc(typeLabel(d.type))}</td><td class="n">${esc(d.read_ct ?? "-")}</td>` +
+    `<td>${esc(REASON[d.error_code] || "Moved aside")}</td></tr>`).join("");
+}
+async function loadDead(){
+  try {
+    const r = await fetch("/api/activity/dead", {cache: "no-store"});
+    if (r.ok) { dead = await r.json(); paintDead(); paintTiles(); }
+  } catch (e) { /* the next queue update tries again */ }
+}
+function takeQueues(list){
+  queues = list;
+  deadCount = list.filter(q => q.dead).reduce((a, q) => a + q.waiting, 0);
+  paintQueues();
+  paintTiles();
+  if (deadCount !== dead.length && dead.length < 50) loadDead();
+}
+
+// ---- live steps -----------------------------------------------------------------------------------------------------
+async function takeEvent(ev){
+  if (seen.has(ev.event_id)) return;
+  lastId = Math.max(lastId, ev.event_id);
+  $("lastStep").textContent = clock(ev.at);
+  let job = jobs.get(ev.job_id);
+  if (job) {
+    applyEvent(job, ev);
+  } else if (ev.type === "job.queued") {
+    job = jobFromEvent(ev);
+    jobs.set(job.job_id, job);
+    applyEvent(job, ev);
+  } else {                                                // a job older than the page: fetch its row and steps
+    if (waiting.has(ev.job_id)) { waiting.get(ev.job_id).push(ev); return; }
+    waiting.set(ev.job_id, [ev]);
+    try {
+      const r = await fetch("/api/activity/job/" + ev.job_id, {cache: "no-store"});
+      if (r.ok) {
+        const body = await r.json();
+        job = newJob(body.job);
+        jobs.set(job.job_id, job);
+        for (const e of body.events) applyEvent(job, e);
+      }
+    } catch (e) { /* the row is added by the next reload */ }
+    const held = waiting.get(ev.job_id) || [];
+    waiting.delete(ev.job_id);
+    if (!job) return;
+    for (const e of held) applyEvent(job, e);
+  }
+  paint(job);
+  const parent = job.parent_job_id && jobs.get(job.parent_job_id);
+  if (parent) paint(parent);                             // its path names the services of its steps
+  paintTiles();
+}
+
+function openStream(){
+  if (es) es.close();
+  es = new EventSource("/api/activity/stream?after=" + lastId);
+  es.onopen = () => { $("live").textContent = "live"; $("dot").className = "live"; };
+  es.onerror = () => {
+    $("live").textContent = "reconnecting"; $("dot").className = "";
+    if (es.readyState === 2) setTimeout(openStream, 2000);   // the browser gave up: start again from the last step
+  };
+  es.addEventListener("ev", m => takeEvent(JSON.parse(m.data)));
+  es.addEventListener("queues", m => takeQueues(JSON.parse(m.data)));
+  es.addEventListener("scaling", m => takeScaling(JSON.parse(m.data)));
+}
+
+async function load(){
+  try {
+    const r = await fetch("/api/activity/snapshot?limit=50", {cache: "no-store"});
+    const s = await r.json();
+    if (!r.ok) throw new Error(s.error || r.status);
+    const byJob = new Map();
+    for (const e of s.events) { if (!byJob.has(e.job_id)) byJob.set(e.job_id, []); byJob.get(e.job_id).push(e); }
+    for (const v of s.jobs.slice().reverse()) {             // oldest first, so the newest end up on top
+      const job = newJob(v);
+      jobs.set(job.job_id, job);
+      for (const e of byJob.get(job.job_id) || []) applyEvent(job, e);
+      job.state = v.state; job.attempt = v.attempt;          // the job record decides the row
+      if (v.ms != null) job.ms = v.ms;
+      paint(job);
+    }
+    for (const j of jobs.values()) if (j.parent_job_id && jobs.has(j.parent_job_id)) paint(jobs.get(j.parent_job_id));
+    lastId = s.last_event_id;
+    dead = s.dead || [];
+    takeQueues(s.queues || []);
+    takeScaling(s.scaling || []);
+    paintDead();
+    paintTiles();
+    $("noJobs").hidden = jobs.size > 0;
+    const newest = s.events.length ? s.events[s.events.length - 1] : null;
+    if (newest) $("lastStep").textContent = clock(newest.at);
+  } catch (e) {
+    $("live").textContent = "reconnecting";
+    setTimeout(load, 2000);
+    return;
+  }
+  openStream();
+}
+
+async function sendTest(b, text, sleep_s){
+  const note = $("sendNote");
+  b.disabled = true; note.textContent = "";
+  try {
+    const r = await fetch("/api/jobs/echo", {method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({text: text + " " + new Date().toISOString(), sleep_s})});
+    if (!r.ok) {
+      let msg = "The test job could not be sent.";
+      try { msg = (await r.json()).error || msg; } catch (e) { /* keep the default sentence */ }
+      note.textContent = msg;
+    }
+  } catch (e) {
+    note.textContent = "The test job could not be sent.";
+  }
+  b.disabled = false;
+}
+$("sendTest").addEventListener("click", () => sendTest($("sendTest"), "test", 0));
+$("sendSlow").addEventListener("click", () => sendTest($("sendSlow"), "slow test", 60));
+
+// jobs that are still open show their age
+setInterval(() => {
+  for (const j of jobs.values()) {
+    if (j.ms == null) {
+      const cell = document.querySelector(`tr.job[data-job="${j.job_id}"] .took`);
+      if (cell) cell.textContent = took(ageMs(j));
+    }
+  }
+}, 250);
+
+paintTiles();
+load();
+{
+  const want = new URLSearchParams(location.search).get("trail");
+  if (want) loadTrail(want, 0);
+}
+</script>
+</body>
+</html>

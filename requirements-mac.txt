@@ -1,0 +1,20 @@
+# macOS environment of Buildcore (Apple Silicon first; Intel Macs work too): the same pins as Windows.
+# Installed by scripts/setup_mac.sh into ~/venvs/buildcore (Python 3.13).
+#
+# Checked on 2026-10-03: every pin of requirements.lock.txt (89), one by one, with
+#   pip download --only-binary=:all: --platform macosx_11_0_arm64 --python-version 3.13 --implementation cp --no-deps
+# then macosx_14_0_arm64 for what had no 11.0 wheel:
+#   - all 89 lock pins have a macOS arm64 wheel for CPython 3.13 (74 pure Python, 15 compiled); none builds from source;
+#     about 232 MB of wheels in all, cadquery-ocp-novtk 7.9.3.1.1 (the geometry kernel) 62 MB of it;
+#   - scipy 1.17.1 (macosx_14_0_arm64) and scikit-learn 1.9.1 (macosx_12_0_arm64) set the floor: macOS 14 Sonoma or newer;
+#   - Intel Macs: all 89 have an x86_64 or universal2 wheel (PyPI's file list);
+# Windows only: colorama (click, pytest and ipython use it only on Windows) carries `sys_platform == "win32"` in the lock,
+# so the Mac skips it and Windows installs exactly what it did before.
+# Mac only: ipython 9.13.0 needs pexpect (and so ptyprocess) everywhere but Windows; the lock is a Windows freeze and lacks
+# them. `uv pip compile requirements-mac.txt --python-platform aarch64-apple-darwin --python-version 3.13` resolves to the
+# lock minus colorama plus these two, pinned here (both pure Python, py3-none-any wheels).
+# Linux images: lib3mf 2.5.0 has no Linux aarch64 wheel and no source package; the image filters its pin out and installs
+# docker/lib3mf-stub instead (build123d only imports it), so it builds natively on linux/arm64 as well as linux/amd64.
+-r requirements.lock.txt
+pexpect==4.9.0 ; sys_platform != "win32"
+ptyprocess==0.7.0 ; sys_platform != "win32"

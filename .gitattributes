@@ -1,0 +1,5 @@
+* text=auto eol=lf
+*.STEP text eol=crlf
+*.FCStd binary
+*.cmd text eol=crlf
+*.ps1 text eol=crlf

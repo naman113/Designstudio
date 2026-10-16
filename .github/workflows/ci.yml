@@ -1,0 +1,49 @@
+# Tests on every push and pull request: the kernel tests in the app image, then the whole stack (Postgres with pgvector
+# and the vendored pgmq init, the four app services, the samples loader) and the stack tests against it.
+# The same commands run locally from the repo root.
+name: ci
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Build the app image
+        run: docker compose build
+
+      - name: Kernel tests (no database)
+        run: docker compose run --rm --no-deps --entrypoint python cli -m pytest -m "not stack"
+
+      - name: Start the stack
+        run: docker compose up -d
+
+      - name: Wait for the samples to load
+        run: |
+          code=$(docker wait "$(docker compose ps -aq init)")
+          echo "init exited with $code"
+          test "$code" = "0"
+
+      - name: Stack tests
+        run: docker compose run --rm --no-deps -e BC_REQUIRE_STACK=1 --entrypoint python cli -m pytest -m stack
+
+      - name: Show the stack on failure
+        if: failure()
+        run: |
+          docker compose ps -a
+          for s in $(docker compose config --services); do
+            echo "==== $s"
+            docker compose logs --no-color --tail 200 "$s" || true
+          done
+
+      - name: Remove the stack
+        if: always()
+        run: docker compose down -v

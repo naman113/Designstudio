@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Services</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=Barlow:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* same tokens as the studio page (index.html) and the comparison page: layout dye on steel */
+  :root{
+    --dye-900:#0B1322; --dye-800:#101B31; --dye-700:#152442; --dye-600:#1C3059;
+    --rule:#243757; --rule-strong:#33507F;
+    --steel:#B9C3D3; --steel-dim:#7C8AA3; --scribe:#EAF1FA; --scribe-blue:#7FB3FF;
+    --brass:#D9A441; --ok:#62C48A; --bad:#E0646C;
+    --display:"Barlow Condensed",system-ui,sans-serif;
+    --body:"Barlow",system-ui,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--dye-900);color:var(--steel);font:15px/1.5 var(--body)}
+  :focus-visible{outline:2px solid var(--scribe-blue);outline-offset:2px}
+  a{color:var(--scribe-blue)}
+  #sheet{margin:12px;border:1px solid var(--rule-strong);position:relative;min-height:calc(100vh - 24px)}
+  #sheet::before{content:"";position:absolute;inset:6px;border:1px solid var(--rule);pointer-events:none}
+  header{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 24px;padding:22px 26px 14px;border-bottom:1px solid var(--rule)}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--steel-dim);text-transform:uppercase}
+  h1{margin:2px 0 0;font-family:var(--display);font-weight:600;font-size:28px;color:var(--scribe);letter-spacing:.01em;line-height:1.1}
+  #meta{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--steel-dim);text-align:right}
+  #meta b{color:var(--scribe);font-weight:500}
+  main{padding:16px 26px 28px}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:18px}
+  .tile{background:var(--dye-800);border:1px solid var(--rule);padding:10px 12px}
+  .tile .k{font-family:var(--display);font-weight:600;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--steel-dim)}
+  .tile .v{font-family:var(--mono);font-size:22px;color:var(--scribe);line-height:1.2;margin-top:2px}
+  .tile .s{font-family:var(--mono);font-size:11px;color:var(--steel-dim)}
+  .tile.sm .v{font-size:14px;line-height:1.5}
+  .tile.warn .v{color:var(--brass)} .tile.good .v{color:var(--ok)} .tile.bad .v{color:var(--bad)}
+  .wrap{overflow-x:auto;border:1px solid var(--rule)}
+  table{border-collapse:collapse;width:100%;font-size:13px}
+  th{position:sticky;top:0;background:var(--dye-700);text-align:left;font-family:var(--display);font-weight:600;font-size:12px;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--steel-dim);padding:6px 8px;border-bottom:1px solid var(--rule-strong);white-space:nowrap}
+  td{padding:7px 8px;border-bottom:1px solid var(--rule);vertical-align:top}
+  td.n{font-family:var(--mono);font-size:12px;white-space:nowrap}
+  td.name b{font-family:var(--display);font-weight:600;font-size:16px;letter-spacing:.04em;color:var(--scribe);text-transform:uppercase}
+  td.name .role{display:block;font-size:12px;color:var(--steel-dim)}
+  .pill{display:inline-block;font-family:var(--mono);font-size:11px;padding:0 6px;border:1px solid currentColor;white-space:nowrap}
+  .pill.running{color:var(--ok)} .pill.starting,.pill.draining,.pill.busy,.pill.retiring{color:var(--brass)}
+  .pill.down,.pill.failed{color:var(--bad)} .pill.stopped,.pill.stopping{color:var(--steel-dim)}
+  tr.down,tr.failed{background:rgba(224,100,108,.07)}
+  tr.busy,tr.draining,tr.starting{background:rgba(217,164,65,.06)}
+  tr.rep td{padding:3px 8px 3px 8px;font-size:12px;background:var(--dye-800)}
+  tr.rep td.name{padding-left:30px;color:var(--steel)}
+  tr.rep td.name b{font-size:13px;letter-spacing:.04em}
+  .old{color:var(--brass)} .stale{color:var(--bad)}
+  .note{font-size:12px;color:var(--steel-dim);max-width:360px}
+  .note .why{color:var(--brass)}
+  #empty{padding:30px;color:var(--steel-dim);font-family:var(--display);font-size:18px;letter-spacing:.04em;text-transform:uppercase}
+  footer{padding:0 26px 22px;font-size:12px;color:var(--steel-dim)}
+  @media (max-width:640px){header,main,footer{padding-left:16px;padding-right:16px}#meta{margin-left:0;text-align:left}}
+</style>
+<link rel="stylesheet" href="/static/rail.css">
+<script src="/static/rail.js" defer></script>
+</head>
+<body>
+<div id="sheet">
+  <header>
+    <div>
+      <div class="eyebrow">Studio services - started together, watched and restarted</div>
+      <h1>Services</h1>
+    </div>
+    <div id="meta">ports <b id="ports">-</b><br>refreshes every second &middot; <span id="upd">-</span> &middot; <a href="/activity">Activity</a> &middot; <a href="/">studio</a></div>
+  </header>
+  <main>
+    <div class="tiles" id="tiles"></div>
+    <div class="wrap">
+      <table>
+        <thead><tr><th>Service</th><th>Runs on</th><th>Image</th><th>Port</th><th>Process</th><th>State</th><th>Last heartbeat</th>
+          <th>Restarts</th><th>Running jobs</th><th>Copies</th><th>Up for</th><th>Note</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <div id="empty" hidden>Waiting for the services ...</div>
+    </div>
+  </main>
+  <footer>A service with a running job is never restarted. A service that stops is started again after a short wait;
+    one that stops five times within a minute is left stopped. Catalogue and Geometry add a copy when work
+    waits and stop a copy after it has had nothing to do for a while; a copy always finishes its job before it stops.</footer>
+</div>
+<script>
+const ROLES = {
+  gateway: "The studio page you work in",
+  orchestrator: "Starts, watches and restarts the others",
+  catalogue: "Products, parts and search",
+  geometry: "Measuring the parts"
+};
+const NAMES = {};
+const JOB_LABELS = {"catalogue.echo": "Test job", "catalogue.echo_once": "Test job (not repeated)",
+  "catalogue.echo_single": "Test job (one at a time)", "check.hold": "Check"};
+const SHORT = {catalogue: "Catalogue", geometry: "Geometry"};
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function dur(s){
+  if (s == null) return "-";
+  s = Math.max(0, Math.round(s));
+  if (s < 90) return s + " s";
+  if (s < 5400) return Math.round(s / 60) + " min";
+  return (s / 3600).toFixed(1) + " h";
+}
+function repRow(c, extra){
+  const age = c.heartbeat_age_s == null ? null : c.heartbeat_age_s + extra;
+  const j = (c.jobs || [])[0];
+  const doing = j ? `${esc(JOB_LABELS[j.kind] || "Working")} ${esc(String(j.id || "").slice(0, 8))}, ${esc(Math.round(j.age_s || 0))} s`
+                  : `idle ${esc(Math.round(c.idle_s || 0))} s`;
+  const up = c.uptime_s != null ? c.uptime_s + extra : null;
+  return `<tr class="rep ${esc(c.state)}"><td class="name"><b>copy ${esc(c.replica)}</b></td>
+    <td></td><td></td>
+    <td class="n">${esc(c.port ?? "-")}</td><td class="n pid">${c.pid ? esc(c.pid) : "-"}</td>
+    <td><span class="pill ${esc(c.state)}">${esc(c.state)}</span></td>
+    <td class="n">${age == null ? "-" : age.toFixed(1) + " s ago"}</td><td class="n">-</td>
+    <td class="n">${esc(c.running_jobs ?? 0)}</td><td class="n"></td>
+    <td class="n">${["running", "busy", "draining", "retiring"].includes(c.state) ? dur(up) : "-"}</td>
+    <td class="note">${doing}</td></tr>`;
+}
+function tile(k, v, s, cls){ return `<div class="tile ${cls||""}"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div><div class="s">${esc(s||"")}</div></div>`; }
+function copiesTile(rows){
+  const sc = n => (rows.find(r => r.name === n) || {}).scale || {};
+  const names = ["catalogue", "geometry"];
+  const first = sc("catalogue");
+  const v = names.map(n => `${SHORT[n]} ${sc(n).replicas ?? 1}`).join(" \u00b7 ");
+  const most = names.map(n => sc(n).max ?? "?").join(" \u00b7 ");
+  const where = first.cores != null
+    ? ` (this computer: ${first.cores} cores, ${(first.free_mb / 1024).toFixed(0)} GB free, ${first.pg_free} database connections free)` : "";
+  return tile("Copies", v, "most allowed " + most + where, "sm");
+}
+let last = null, lastAt = 0, downAfter = 30;
+function render(){
+  if (!last) return;
+  const extra = (Date.now() - lastAt) / 1000;
+  const rows = last.services || [];
+  document.getElementById("empty").hidden = rows.length > 0;
+  document.getElementById("rows").innerHTML = rows.map(r => {
+    const age = r.heartbeat_age_s == null ? null : r.heartbeat_age_s + extra;
+    const ageCls = age == null ? "" : age > downAfter ? "stale" : age > 15 ? "old" : "";
+    const note = [r.detail ? `<span class="why">${esc(r.detail)}</span>` : "", r.last_exit ? "last stop: " + esc(r.last_exit) : ""]
+      .filter(Boolean).join("<br>");
+    const up = r.started_at != null && last.now != null ? last.now - r.started_at + extra : (r.uptime_s != null ? r.uptime_s + extra : null);
+    const sc = r.scale || {};
+    const copies = sc.scalable ? `${esc(sc.replicas ?? 1)} (up to ${esc(sc.max ?? "?")})` : "1";
+    const reps = (r.replicas || []).length >= 2 ? r.replicas.map(c => repRow(c, extra)).join("") : "";
+    return `<tr class="${esc(r.state)}">
+      <td class="name"><b>${esc(NAMES[r.name] || r.name)}</b><span class="role">${esc(ROLES[r.name] || "")}</span></td>
+      <td class="n">${esc(r.where || "this PC")}</td>
+      <td class="n">${esc(r.image || "-")}</td>
+      <td class="n">${esc(r.port)}</td>
+      <td class="n">${r.pid ? esc(r.pid) : "-"}</td>
+      <td><span class="pill ${esc(r.state)}">${esc(r.state)}</span></td>
+      <td class="n ${ageCls}">${age == null ? "-" : age.toFixed(1) + " s ago"}</td>
+      <td class="n">${esc(r.restarts ?? 0)}</td>
+      <td class="n">${esc(r.running_jobs ?? 0)}</td>
+      <td class="n">${copies}</td>
+      <td class="n">${r.state === "running" || r.state === "busy" || r.state === "draining" ? dur(up) : "-"}</td>
+      <td class="note">${note}</td></tr>${reps}`;
+  }).join("");
+  const running = rows.filter(r => r.state === "running").length;
+  const restarts = rows.reduce((a, r) => a + (r.restarts || 0), 0);
+  const jobs = rows.reduce((a, r) => a + (r.running_jobs || 0), 0);
+  const ages = rows.map(r => r.heartbeat_age_s).filter(a => a != null).map(a => a + extra);
+  const oldest = ages.length ? Math.max(...ages) : null;
+  document.getElementById("tiles").innerHTML =
+    tile("Running", `${running} of ${rows.length || 7}`, "services answering", running === (rows.length || 7) ? "good" : "warn") +
+    tile("Oldest heartbeat", oldest == null ? "-" : oldest.toFixed(1) + " s", "each service reports every " + (last.heartbeat_s || 5) + " s",
+         oldest == null ? "" : oldest > downAfter ? "bad" : oldest > 15 ? "warn" : "good") +
+    tile("Restarts", restarts, "since the services were started", restarts ? "warn" : "") +
+    tile("Running jobs", jobs, "never restarted while running") + copiesTile(rows);
+}
+async function poll(){
+  try {
+    const r = await fetch("/api/services", {cache: "no-store"});
+    const body = await r.json();
+    if (!r.ok) throw new Error(body.error || r.status);
+    last = body; lastAt = Date.now(); downAfter = body.down_after_s || 30;
+    const b = body.base_port;
+    document.getElementById("ports").textContent = b ? `${b}-${b + 5}` : "-";
+    document.getElementById("upd").textContent = "updated " + new Date().toLocaleTimeString();
+  } catch (e) {
+    document.getElementById("upd").textContent = "the service list is not available right now";
+  }
+  render();
+}
+poll();
+setInterval(poll, 1000);
+setInterval(render, 500);
+</script>
+</body>
+</html>

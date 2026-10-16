@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "note": "Parts the drawings list but do not draw. Whole words matched on the readable name and the readable ref.",
+  "words": [
+    "bearing",
+    "bearings",
+    "brg",
+    "seal",
+    "seals",
+    "o ring",
+    "oring",
+    "circlip",
+    "circlips",
+    "screw",
+    "screws",
+    "bolt",
+    "bolts",
+    "nut",
+    "nuts",
+    "washer",
+    "washers",
+    "dowel",
+    "dowels",
+    "stud",
+    "studs",
+    "rivet",
+    "rivets",
+    "grub"
+  ]
+}
