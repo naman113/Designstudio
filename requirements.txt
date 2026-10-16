@@ -18,7 +18,7 @@ pytest==9.1.1
 psycopg[binary]==3.3.6
 
 # pictures: flattening onto white and the sheet
-pillow==12.2.0
+pillow==12.3.0
 # drawings: the drawing engine writes its PDF sheets with matplotlib's PDF backend. The six pins are the
 # lock's; installed with --no-deps.
 matplotlib==3.11.2

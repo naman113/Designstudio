@@ -52,7 +52,7 @@ ocpsvg==0.6.0
 orjson==3.11.8
 packaging==26.2
 parso==0.8.6
-pillow==12.2.0
+pillow==12.3.0
 platformdirs==4.9.6
 pluggy==1.6.0
 prompt-toolkit==3.0.52
