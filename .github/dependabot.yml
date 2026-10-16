@@ -1,0 +1,7 @@
+# Keeps the pinned CI actions current. Python dependencies get security updates only (pins are deliberate).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

@@ -162,6 +162,11 @@ docker compose run --rm --no-deps -e BC_REQUIRE_STACK=1 --entrypoint python cli 
 The stack tests add and remove their own probe parts and leave the studio as they found it. The same commands run in
 CI (`.github/workflows/ci.yml`) on every push and pull request.
 
+## Contributing
+
+Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for how to fork, run the tests and open a
+pull request, and [SECURITY.md](SECURITY.md) for reporting security problems privately.
+
 ## Licence and credits
 
 Buildcore is released under the MIT licence: see [LICENSE](LICENSE).
