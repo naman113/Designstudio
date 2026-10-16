@@ -1,0 +1,44 @@
+name: Bug report
+description: Something gives a wrong result or does not work
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what you got instead.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [Drawing, BOM, 3D / GLB, Catalogue, CLI, Docker / setup, Other]
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. docker compose up -d
+        2. Open assembly ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: step-file
+    attributes:
+      label: STEP file
+      description: Attach the STEP file if you can share it (zip it first). Do not attach confidential files.
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      description: OS, CPU (Apple Silicon / Intel / AMD), Docker version, commit.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Output of `docker compose logs --tail 100` if relevant.
+      render: text
